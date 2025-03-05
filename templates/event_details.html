@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ event.name }}</h2>
+
+<div class="event-detail">
+    {% if event.banner_image %}
+      <img src="{{ url_for('static', filename='uploads/' ~ event.banner_image) }}" alt="Event Banner">
+    {% elif images|length > 0 %}
+      <!-- Fallback to first image if no banner set -->
+      <img src="{{ url_for('static', filename='uploads/' ~ images[0]['image_path']) }}" alt="Event Image">
+    {% else %}
+      <img src="https://via.placeholder.com/600x400?text=No+Image" alt="No Image">
+    {% endif %}
+
+    <p><strong>Description:</strong> {{ event.description }}</p>
+    <p><strong>Category:</strong> {{ event.category }}</p>
+    <p><strong>Date/Time:</strong> {{ event.event_date }}</p>
+    <p><strong>Location:</strong> {{ event.location }}</p>
+    <p><strong>Number of Attendees:</strong> {{ event.num_attendees }}</p>
+    <p><strong>Visibility:</strong> {% if event.is_public %}Public{% else %}Private{% endif %}</p>
+    <p><strong>Created by:</strong> {{ username }}</p>
+    <p><strong>Created at:</strong> {{ event.created_at }}</p>
+</div>
+
+<h3>Gallery</h3>
+<div class="gallery">
+  {% for img in images %}
+    <img src="{{ url_for('static', filename='uploads/' ~ img.image_path) }}" alt="Event Image">
+  {% endfor %}
+</div>
+
+<style>
+.event-detail img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 10px;
+}
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.gallery img {
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+}
+</style>
+{% endblock %}

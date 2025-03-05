@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Explore Events</h2>
+<div class="explore-container">
+  {% for event in events %}
+    <div class="card">
+      <!-- Use the banner image if it exists, otherwise a placeholder -->
+      {% if event.banner_image %}
+        <img src="{{ url_for('static', filename='uploads/' ~ event.banner_image) }}" alt="Event Banner">
+      {% elif event.image %}
+        <img src="{{ url_for('static', filename='uploads/' ~ event.image['image_path']) }}" alt="Event Image">
+      {% else %}
+        <img src="https://via.placeholder.com/300x200?text=No+Image" alt="No Image">
+      {% endif %}
+      <div class="card-content">
+        <h3>{{ event.name }}</h3>
+        <p><strong>Category:</strong> {{ event.category }}</p>
+        <p><strong>Date/Time:</strong> {{ event.event_date }}</p>
+        <p><strong>Location:</strong> {{ event.location }}</p>
+        <p><strong>Created by:</strong> {{ event.username }}</p>
+        <!-- New View Details Link -->
+        <a href="{{ url_for('event_detail', event_id=event.id) }}" style="text-decoration:none; color:#fff;">
+          <button style="margin-top:10px;padding:8px 12px;background-color:#333;color:#fff;border:none;cursor:pointer;">View Details</button>
+        </a>
+      </div>
+    </div>
+  {% else %}
+    <p>No events found.</p>
+  {% endfor %}
+</div>
+
+<style>
+.explore-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+.card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    width: 300px;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    background-color: #fff;
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: scale(1.02);
+}
+.card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+.card-content {
+    padding: 10px 0;
+}
+</style>
+{% endblock %}
