@@ -3,15 +3,17 @@
 <h2>{{ event.name }}</h2>
 
 <div class="event-detail">
+    <!-- Display banner image or fallback -->
     {% if event.banner_image %}
-      <img src="{{ url_for('static', filename='uploads/' ~ event.banner_image) }}" alt="Event Banner">
+      <img src="{{ url_for('static', filename='uploads/' ~ event.banner_image) }}" alt="Event Banner" style="width:100%; max-width:600px; height:auto;">
     {% elif images|length > 0 %}
-      <!-- Fallback to first image if no banner set -->
-      <img src="{{ url_for('static', filename='uploads/' ~ images[0]['image_path']) }}" alt="Event Image">
+      <!-- Fallback to first image if no banner is set -->
+      <img src="{{ url_for('static', filename='uploads/' ~ images[0]['image_path']) }}" alt="Event Image" style="width:100%; max-width:600px; height:auto;">
     {% else %}
-      <img src="https://via.placeholder.com/600x400?text=No+Image" alt="No Image">
+      <img src="https://via.placeholder.com/600x400?text=No+Image" alt="No Image" style="width:100%; max-width:600px; height:auto;">
     {% endif %}
 
+    <!-- Event details -->
     <p><strong>Description:</strong> {{ event.description }}</p>
     <p><strong>Category:</strong> {{ event.category }}</p>
     <p><strong>Date/Time:</strong> {{ event.event_date }}</p>
@@ -22,29 +24,46 @@
     <p><strong>Created at:</strong> {{ event.created_at }}</p>
 </div>
 
-<h3>Gallery</h3>
-<div class="gallery">
-  {% for img in images %}
-    <img src="{{ url_for('static', filename='uploads/' ~ img.image_path) }}" alt="Event Image">
-  {% endfor %}
+<h3>Explore Photos</h3>
+<div class="folders">
+    <!-- Link to All Photos folder -->
+    <div class="folder">
+      <a href="{{ url_for('view_all_photos', event_id=event.id) }}">
+        <div style="font-size: 50px; text-align: center;">📁</div>
+        <p>All Photos</p>
+    </a>
+    
+    </div>
+
+    <!-- List all albums dynamically -->
+    {% for album in albums %}
+    <div class="folder">
+        <a href="{{ url_for('view_album_photos', event_id=event.id, album_name=album) }}">
+          <div style="font-size: 50px; text-align: center;">📁</div>
+          <p>{{ album }}</p>
+        </a>
+    </div>
+    {% endfor %}
 </div>
 
 <style>
 .event-detail img {
-    max-width: 100%;
-    height: auto;
     display: block;
-    margin-bottom: 10px;
+    margin: 0 auto 10px;
 }
-.gallery {
+.folders {
     display: flex;
+    gap: 15px;
     flex-wrap: wrap;
-    gap: 10px;
 }
-.gallery img {
-    width: 150px;
+.folder {
+    text-align: center;
+}
+.folder img {
+    width: 100px;
     height: 100px;
     object-fit: cover;
+    margin-bottom: 5px;
 }
 </style>
 {% endblock %}

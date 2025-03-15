@@ -11,13 +11,15 @@
         <p><strong>Location:</strong> {{ event.location }}</p>
         <p><strong>Number of Attendees:</strong> {{ event.num_attendees }}</p>
         <p><strong>Created At:</strong> {{ event.created_at }}</p>
-        {% if event.images %}
-            <div>
-                {% for img in event.images %}
-                <img src="{{ url_for('static', filename='uploads/' ~ img.image_path) }}" alt="Event Image">
-                {% endfor %}
-            </div>
+        <!-- Display the banner image -->
+        {% if event.banner_image %}
+            <img src="{{ url_for('static', filename='uploads/' ~ event.banner_image) }}" alt="Banner Image" style="width:200px; height:auto;">
         {% endif %}
+        <div>
+            <!-- Links to All Photos and Albums -->
+            <a href="{{ url_for('view_all_photos', event_id=event.id) }}" style="margin-right:15px;">📁 All Photos</a>
+            <a href="{{ url_for('view_albums', event_id=event.id) }}">📁 Albums</a>
+        </div>
         <p>
             <a href="{{ url_for('edit_event', event_id=event.id) }}">Edit</a> | 
             <form method="POST" action="{{ url_for('delete_event', event_id=event.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this event?');">
@@ -25,6 +27,7 @@
             </form>
         </p>
     </div>
+    <hr>
     {% endfor %}
 {% else %}
     <p>You haven't created any events yet. <a href="{{ url_for('create_event') }}">Create one now!</a></p>

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>All Photos</h2>
+<p>Browse all photos uploaded for this event:</p>
+
+{% if event_owner %}
+<!-- Edit Mode Toggle (Visible Only to Owner) -->
+<button id="edit-mode-btn" onclick="toggleEditMode()">Edit</button>
+{% endif %}
+
+<!-- Gallery Section -->
+<div class="gallery">
+    {% if photos %}
+        {% for photo in photos %}
+        <div class="photo-card">
+            <img src="{{ url_for('static', filename='uploads/event_' ~ event_id ~ '/all_photos/' ~ photo) }}" alt="Photo">
+            
+            {% if event_owner %}
+            <!-- Photo Selection for Edit Mode (Owner Only) -->
+            <input type="checkbox" class="photo-select" name="selected_photos" value="{{ photo }}" style="display: none;">
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No photos found in this folder.</p>
+    {% endif %}
+</div>
+
+{% if event_owner %}
+<!-- Management Options (Visible Only in Edit Mode) -->
+<div id="management-options" style="display: none; margin-top: 20px;">
+    <form method="POST" action="{{ url_for('manage_all_photos', event_id=event_id) }}" enctype="multipart/form-data">
+        <!-- Delete Selected Photos -->
+        <button type="submit" name="action" value="delete_selected" class="manage-btn">Delete Selected</button>
+
+        <!-- Add New Images -->
+        <h4>Add New Images:</h4>
+        <input type="file" name="new_images" multiple accept="image/*">
+        <button type="submit" name="action" value="add_images" class="manage-btn">Add Images</button>
+    </form>
+</div>
+{% endif %}
+
+<style>
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+.photo-card {
+    text-align: center;
+    position: relative;
+}
+.photo-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.photo-select {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    transform: scale(1.5);
+    display: none; /* Hidden unless Edit Mode is activated */
+}
+.manage-btn {
+    padding: 10px 15px;
+    margin-top: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.manage-btn:hover {
+    background-color: #0056b3;
+}
+</style>
+
+<!-- JavaScript for Edit Mode -->
+<script>
+    function toggleEditMode() {
+        const managementOptions = document.getElementById('management-options');
+        const photoSelectCheckboxes = document.querySelectorAll('.photo-select');
+        const editModeBtn = document.getElementById('edit-mode-btn');
+
+        if (managementOptions.style.display === "none") {
+            managementOptions.style.display = "block";
+            photoSelectCheckboxes.forEach(cb => cb.style.display = "inline-block");
+            editModeBtn.textContent = "Exit Edit Mode";
+        } else {
+            managementOptions.style.display = "none";
+            photoSelectCheckboxes.forEach(cb => cb.style.display = "none");
+            editModeBtn.textContent = "Edit";
+        }
+    }
+</script>
+{% endblock %}
