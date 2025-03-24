@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 *.db
 uploads/
+database.ddb
+database.sqbpro
+flask_sesion/
+app/utils/__pycache__/
