@@ -1,2 +1,5 @@
-/static/uploads/*
-!/static/uploads/.gitkeep
+venv/
+__pycache__/
+*.pyc
+*.db
+uploads/

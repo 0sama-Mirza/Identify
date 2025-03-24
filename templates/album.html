@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% block title %}{{ album.name }} - Album{% endblock %}
+
+{% block styles %}
+<style>
+/* General Album Container */
+.album-container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 25px;
+  background-color: #f9f9f9;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Header Styling */
+.album-header {
+  position: relative;
+  text-align: center;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.album-header h1 {
+  font-size: 2.8rem;
+  color: #2e2e2e;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+.album-header p {
+  font-size: 1.2rem;
+  color: #555;
+  margin: 5px 0;
+}
+
+/* Action Buttons Container */
+.album-header .action-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 20px;
+  justify-content: center; /* Center-align buttons */
+  flex-wrap: wrap; /* Make sure buttons wrap properly on small screens */
+}
+
+/* Buttons Styling */
+.action-buttons button {
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.action-buttons button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Edit Mode Button */
+.edit-mode-button {
+  background-color: #28a745; /* Green for edit mode */
+  color: #fff;
+}
+.edit-mode-button:hover {
+  background-color: #218838; /* Darker green hover */
+}
+
+/* Add Images Button */
+.action-buttons button:not(.delete-album-button):not(.edit-mode-button) {
+  background-color: #007BFF;
+  color: #fff;
+}
+.action-buttons button:not(.delete-album-button):not(.edit-mode-button):hover {
+  background-color: #0056b3;
+}
+
+/* Delete Album Button */
+.delete-album-button {
+  background-color: #ff4d4d; /* Bright red for delete */
+  color: #fff;
+}
+.delete-album-button:hover {
+  background-color: #d11a2a; /* Darker red hover */
+}
+
+/* Album Images Section */
+.album-images {
+  margin-top: 30px;
+}
+.album-images h2 {
+  font-size: 2rem;
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Image Grid */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+/* Editable Image Style */
+.image-item {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.image-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+  .image-item-hover:hover {
+    transform: scale(1.05);
+  }
+/* Edit Mode Hover Effect */
+.image-item.editable:hover img {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Selected Images Styling */
+.image-item.selected {
+  border: 4px solid #ff4d4d; /* Bright red border for selected images */
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.5); /* Glow effect */
+}
+
+/* No Images Message */
+.no-images-message {
+  font-size: 1.3rem;
+  color: #999;
+  text-align: center;
+  margin-top: 20px;
+  font-style: italic;
+}
+
+.back-button {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 10px 20px;
+  background-color: #007BFF;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  border: 2px solid #007BFF;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.back-button:hover {
+  background-color: #007BFF;
+  color: #fff;
+  transform: translateY(-50%) translateX(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .album-header h1 {
+    font-size: 2.2rem;
+  }
+  .action-buttons button {
+    font-size: 1rem;
+    padding: 10px 20px;
+  }
+  .image-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="album-container" data-album-id="{{ album.id }}">
+  <!-- Album Header -->
+  <header class="album-header">
+    <!-- Back Button -->
+    <button class="back-button" onclick="window.location.href='/events/{{ album.event_id }}'">
+      &larr; Back to Event
+    </button>
+    
+    <h1>{{ album.name }}</h1>
+    <p><strong>Event:</strong> <span class="event-name">{{ album.event_name }}</span></p>
+    <p><strong>Visibility:</strong> {{ album.visibility }}</p>
+    <p><strong>Created At:</strong> {{ album.created_at }}</p>
+    
+    {% if is_owner %}
+    <div class="action-buttons">
+      <button class="edit-mode-button" onclick="toggleEditMode()">Select Images For Deletion</button>
+      {% if album.name != 'all_photos' %}
+      <button onclick="window.location.href='{{ url_for('album.add_images_to_album_route', album_id=album.id) }}'">
+        Add Images to Album
+      </button>
+      <!-- Original Delete Album Button -->
+      <button id="delete-album-btn" class="delete-album-button" onclick="confirmDelete({{ album.id }}, {{ album.event_id }})">
+        🗑️ Delete Album
+      </button>  
+      <!-- Hidden Delete Selected Images Button -->
+      <button id="delete-selected-btn" class="delete-selected-button delete-album-button" onclick="deleteSelectedImages()" style="display: none;" disabled>
+        Delete Selected Images
+      </button>
+      {% else %}
+      <!-- For all_photos, always show the Delete Selected Images Button -->
+      <button id="delete-selected-btn" class="delete-selected-button delete-album-button" onclick="deleteSelectedImages()">
+        Delete Selected Images
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </header>
+  
+  <!-- Images Section -->
+  <section class="album-images">
+    <h2>Images</h2>
+    {% if images %}
+      <div class="image-grid">
+        {% for image in images %}
+          <div class="image-item image-item-hover" data-image-id="{{ image.id }}">
+            <img src="/uploads/event/{{ album.event_id }}/image{{ image.path }}" alt="Album Image">
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="no-images-message">No images found for this album.</p>
+    {% endif %}
+  </section>
+</div>
+
+{% if is_owner %}
+<script>
+let editMode = false; // Keeps track of edit mode state
+let selectedImages = []; // Stores IDs of selected images
+
+// Toggle Edit Mode or Deselect Mode
+function toggleEditMode() {
+  editMode = !editMode;
+  const imageItems = document.querySelectorAll('.image-item');
+  const editButton = document.querySelector('.edit-mode-button');
+  const deleteAlbumBtn = document.getElementById('delete-album-btn');
+  const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+
+  // Update image items for edit mode
+  imageItems.forEach(item => {
+    if (editMode) {
+      item.classList.add('editable');
+      item.classList.remove('image-item-hover');
+      item.addEventListener('click', toggleImageSelection);
+    } else {
+      item.classList.remove('editable', 'selected');
+      item.classList.add('image-item-hover');
+      item.removeEventListener('click', toggleImageSelection);
+    }
+  });
+
+  // Toggle visibility of Delete buttons and update edit button text
+  if (editMode) {
+    editButton.textContent = "Deselect Images";
+    // Hide the original Delete Album button
+    deleteAlbumBtn.style.display = "none";
+    // Show the Delete Selected Images button
+    deleteSelectedBtn.style.display = "inline-block";
+    // Initially disable delete selected button until images are selected
+    deleteSelectedBtn.disabled = true;
+  } else {
+    editButton.textContent = "Select Images For Deletion";
+    // Show the original Delete Album button
+    deleteAlbumBtn.style.display = "inline-block";
+    // Hide the Delete Selected Images button
+    deleteSelectedBtn.style.display = "none";
+    selectedImages = []; // Clear selection
+  }
+}
+
+// Toggle Selection of an Image
+function toggleImageSelection(event) {
+  const imageItem = event.currentTarget;
+  const imageId = imageItem.dataset.imageId;
+
+  if (selectedImages.includes(imageId)) {
+    // Remove image from selection
+    selectedImages = selectedImages.filter(id => id !== imageId);
+    imageItem.classList.remove('selected');
+  } else {
+    // Add image to selection
+    selectedImages.push(imageId);
+    imageItem.classList.add('selected');
+  }
+
+  // Enable or disable the delete button based on selections
+  const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+  deleteSelectedBtn.disabled = selectedImages.length === 0;
+}
+
+// Delete Selected Images
+function deleteSelectedImages() {
+  if (selectedImages.length === 0) {
+    alert("No images selected for deletion.");
+    return;
+  }
+
+    // Get the album ID from the album container's data attribute
+  const albumContainer = document.querySelector('.album-container');
+  const albumId = albumContainer.dataset.albumId;
+
+  const isAllPhotosAlbum = '{{ album.name }}' === 'all_photos';
+  const endpoint = isAllPhotosAlbum 
+    ? '{{ url_for("album.delete_images_from_all") }}' 
+    : '{{ url_for("album.delete_images_from_album") }}';
+
+  console.log(`\nendpoint: {endpoint}\n`);
+  fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      imageIds: selectedImages,
+      eventId: '{{ album.event_id }}', // Include event ID for context
+      albumId: albumId, // Include album_id here
+    }),
+  })
+    .then(response => {
+      if (response.ok) {
+        alert("Selected images deleted successfully!");
+        window.location.reload(); // Reload page to reflect changes
+      } else {
+        alert("Failed to delete selected images.");
+      }
+    })
+    .catch(error => {
+      console.error("Error deleting selected images:", error);
+      alert("An unexpected error occurred. Please try again later.");
+    });
+}
+
+// Confirm Album Deletion
+function confirmDelete(albumId, eventId) {
+  if (confirm("Are you sure you want to delete this album? This action cannot be undone.")) {
+    fetch(`/albums/${albumId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(response => {
+        if (response.ok) {
+          alert("Album deleted successfully!");
+          window.location.href = `/events/${eventId}`;
+        } else {
+          response.json().then(data => {
+            alert(data.error || "Failed to delete the album. Please try again.");
+          });
+        }
+      })
+      .catch(error => {
+        console.error("Error deleting the album:", error);
+        alert("An unexpected error occurred. Please try again later.");
+      });
+  }
+}
+</script>
+{% endif %}
+
+{% endblock %}

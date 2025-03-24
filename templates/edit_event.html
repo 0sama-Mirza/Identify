@@ -1,97 +1,114 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Edit Event</h2>
-<form method="POST" action="{{ url_for('edit_event', event_id=event.id) }}" enctype="multipart/form-data">
-    <label for="name">Event Name:</label>
-    <input type="text" name="name" value="{{ event.name }}" required>
-    
-    <label for="description">Description:</label>
-    <textarea name="description" rows="4">{{ event.description }}</textarea>
-    
-    <label for="category">Category:</label>
-    <input type="text" name="category" value="{{ event.category }}">
-    
-    <label for="event_date">Event Date/Time:</label>
-    <input type="datetime-local" name="event_date" value="{{ event.event_date }}">
-    
-    <label for="location">Location:</label>
-    <input type="text" name="location" value="{{ event.location }}">
-    
-    <label for="num_attendees">Number of Attendees:</label>
-    <input type="number" name="num_attendees" value="{{ event.num_attendees }}">
 
-    <label for="visibility">Visibility:</label>
-    <select name="visibility">
-        <option value="public" {% if event.is_public == 1 %}selected{% endif %}>Public</option>
-        <option value="private" {% if event.is_public == 0 %}selected{% endif %}>Private</option>
-    </select>
+<!-- Form to edit event details -->
+<form method="POST" action="{{ url_for('event.edit_event', event_id=event.id) }}" enctype="multipart/form-data">
+    <!-- Event Details -->
+    <fieldset>
+        <legend>Event Details</legend>
+        <label for="name">Event Name:</label>
+        <input type="text" name="name" id="name" value="{{ event.name }}" required>
+        
+        <label for="description">Description:</label>
+        <textarea name="description" id="description" rows="4">{{ event.description }}</textarea>
+        
+        <label for="category">Category:</label>
+        <input type="text" name="category" id="category" value="{{ event.category }}">
+        
+        <label for="event_date">Event Date/Time:</label>
+        <input type="datetime-local" name="event_date" id="event_date" value="{{ event.event_date }}">
+        
+        <label for="location">Location:</label>
+        <input type="text" name="location" id="location" value="{{ event.location }}">
+        
+        <label for="num_attendees">Number of Attendees:</label>
+        <input type="number" name="num_attendees" id="num_attendees" value="{{ event.num_attendees }}">
+
+        <label for="visibility">Visibility:</label>
+        <select name="visibility" id="visibility">
+            <option value="public" {% if event.is_public == 1 %}selected{% endif %}>Public</option>
+            <option value="private" {% if event.is_public == 0 %}selected{% endif %}>Private</option>
+        </select>
+    </fieldset>
     
-    <!-- Optional: allow user to upload a new banner image -->
-    <label for="banner">New Banner Image (optional):</label>
-    <input type="file" name="banner" accept="image/*">
-    
-    <!-- Option to add more images -->
-    <label for="images">Add More Images:</label>
-    <input type="file" name="images" multiple accept="image/*">
-    
-    <!-- Radio group for selecting a banner image from existing images -->
+    <!-- Banner Upload -->
+    <fieldset>
+        <legend>Banner Image</legend>
+        <label for="banner">Upload New Banner Image (optional):</label>
+        <input type="file" name="banner" id="banner" accept="image/*">
+    </fieldset>
+
+    <!-- Additional Images Upload -->
+    <fieldset>
+        <legend>Add More Images</legend>
+        <label for="images">Upload Images:</label>
+        <input type="file" name="images" id="images" multiple accept="image/*">
+    </fieldset>
+
+    <!-- Select Existing Banner Image -->
     {% if images %}
-      <h3>Select Banner Image</h3>
-      {% for img in images %}
-        <div style="display: inline-block; margin: 5px; text-align: center;">
-          <label>
-            <input type="radio" name="banner_choice" value="{{ img.image_path }}" {% if event.banner_image == img.image_path %}checked{% endif %}>
-            <img src="{{ url_for('static', filename='uploads/' ~ img.image_path) }}" alt="Image" style="width:100px; height:75px; object-fit: cover;">
-          </label>
-          <!-- Checkbox to select image for deletion -->
-          <label>
-            <input type="checkbox" name="delete_images" value="{{ img.id }}">
-            <span>Delete</span>
-          </label>
-        </div>
-      {% endfor %}
-    {% endif %}
-    
-    <button type="submit">Update Event</button>
-</form>
-
-<!-- Section for creating new albums -->
-<h3>Create New Album</h3>
-<form method="POST" action="{{ url_for('create_album', event_id=event.id) }}">
-    <label for="new_album">New Album Name:</label>
-    <input type="text" name="new_album" placeholder="Enter album name" required>
-    
-    <label for="privacy">Privacy Setting:</label>
-    <select name="privacy" id="privacy">
-        <option value="private">Private</option>
-        <option value="public">Public</option>
-    </select>
-    
-    <button type="submit">Create Album</button>
-</form>
-
-
-<!-- Section for managing photos -->
-{% if images %}
-<h3>Move Photos to Album</h3>
-<form method="POST" action="{{ url_for('move_photos_to_album', event_id=event.id) }}">
-    <div>
+    <fieldset>
+        <legend>Select Existing Banner Image</legend>
         {% for img in images %}
         <div style="display: inline-block; margin: 5px; text-align: center;">
-            <input type="checkbox" name="selected_photos" value="{{ img.image_path }}">
-            <img src="{{ url_for('static', filename='uploads/' ~ img.image_path) }}" 
-                 alt="Image" style="width:100px; height:75px; object-fit: cover;">
+            <label>
+                <input type="radio" name="banner_choice" value="{{ img }}" {% if event.banner_image == img %}checked{% endif %}>
+                <img src="{{ url_for('uploads.upload_event_images', event_id=event.id, filename=img) }}" alt="Image" style="width: 100px; height: 75px; object-fit: cover;">
+            </label>
+            <!-- Option to delete image -->
+            <label>
+                <input type="checkbox" name="delete_images" value="{{ img }}">
+                <span>Delete</span>
+            </label>
         </div>
         {% endfor %}
-    </div>
-    <label for="target_album">Select Album:</label>
-    <select name="target_album">
-        <option value="" disabled selected>Select Album</option>
-        {% for album in albums %}
-        <option value="{{ album }}">{{ album }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit">Move Selected Photos</button>
+    </fieldset>
+    {% endif %}
+    
+    <button type="submit">Save Changes</button>
 </form>
+
+<!-- Section for Creating a New Album -->
+{% if albums %}
+<fieldset>
+    <legend>Manage Albums</legend>
+    <h3>Create a New Album</h3>
+    <form method="POST" action="{{ url_for('album.create_album', event_id=event.id) }}">
+        <label for="new_album">New Album Name:</label>
+        <input type="text" name="new_album" id="new_album" placeholder="Enter album name" required>
+        
+        <label for="privacy">Privacy Setting:</label>
+        <select name="privacy" id="privacy">
+            <option value="private">Private</option>
+            <option value="public">Public</option>
+        </select>
+        
+        <button type="submit">Create Album</button>
+    </form>
+</fieldset>
+
+<!-- Section for Moving Photos to Albums -->
+<fieldset>
+    <legend>Move Photos to Album</legend>
+    <form method="POST" action="{{ url_for('album.move_photos_to_album', event_id=event.id) }}">
+        <div>
+            {% for img in images %}
+            <div style="display: inline-block; margin: 5px; text-align: center;">
+                <input type="checkbox" name="selected_photos" value="{{ img }}">
+                <img src="{{ url_for('uploads.upload_event_images', event_id=event.id, filename=img) }}" alt="Image" style="width: 100px; height: 75px; object-fit: cover;">
+            </div>
+            {% endfor %}
+        </div>
+        <label for="target_album">Select Album:</label>
+        <select name="target_album" id="target_album">
+            <option value="" disabled selected>Select Album</option>
+            {% for album in albums %}
+            <option value="{{ album.name }}">{{ album.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Move Selected Photos</button>
+    </form>
+</fieldset>
 {% endif %}
 {% endblock %}

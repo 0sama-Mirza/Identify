@@ -1,87 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Event Manager</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f9f9f9; 
-        }
-        .navbar { 
-            background-color: #333; 
-            color: #fff; 
-            padding: 10px; 
-        }
-        .navbar a { 
-            color: #fff; 
-            margin-right: 10px; 
-            text-decoration: none; 
-        }
-        .container { 
-            width: 90%; 
-            max-width: 800px; 
-            margin: 20px auto; 
-            background-color: #fff; 
-            padding: 20px; 
-            box-shadow: 0 2px 3px rgba(0,0,0,0.1); 
-        }
-        .flash-message { color: red; }
-        input, textarea, select { 
-            width: 100%; 
-            padding: 8px; 
-            margin: 5px 0; 
-        }
-        label { 
-            font-weight: bold; 
-            margin-top: 10px; 
-            display: block; 
-        }
-        button { 
-            padding: 10px; 
-            background-color: #333; 
-            color: #fff; 
-            border: none; 
-            cursor: pointer; 
-            margin-top: 10px; 
-        }
-        .event { 
-            border: 1px solid #ddd; 
-            padding: 10px; 
-            margin-bottom: 10px; 
-        }
-        .event img { 
-            max-width: 100px; 
-            margin-right: 5px; 
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Event Manager{% endblock %}</title>
+  <style>
+    /* Global reset and basic styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      padding: 20px;
+    }
+    /* Navbar (shared across pages) */
+    .navbar {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 10px;
+    }
+    .navbar a:hover {
+      text-decoration: underline;
+    }
+    /* Main container */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    }
+    .flash-message {
+      color: red;
+      margin-bottom: 10px;
+    }
+    {% block styles %}{% endblock %}
+  </style>
 </head>
 <body>
-    <div class="navbar">
-        <a href="{{ url_for('explore') }}">Explore</a> |
-        {% if session.username %}
-          Signed in as {{ session.username }} | 
-          <a href="{{ url_for('events') }}">My Events</a>
-          <a href="{{ url_for('create_event') }}">Create Event</a>
-          <a href="{{ url_for('logout') }}">Logout</a>
-        {% else %}
-          <a href="{{ url_for('login') }}">Login</a>
-          <a href="{{ url_for('register') }}">Register</a>
+  <!-- Shared Navbar -->
+  <div class="navbar">
+    <div>
+      <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('main.explore') }}">Explore</a>
+      <a href="{{ url_for('event.get_user_events_route') }}">My Events</a>
+    </div>
+    <div>
+      {% if session.username %}
+        Signed in as {{ session.username }} |
+        <a href="{{ url_for('event.create_event_route') }}">Create Event</a>
+        <a href="{{ url_for('auth.logout_get') }}">Logout</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+        <a href="{{ url_for('auth.register') }}">Register</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="container">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for msg in messages %}
+            <p class="flash-message">{{ msg }}</p>
+          {% endfor %}
         {% endif %}
-    </div>
-    
-    
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            {% for msg in messages %}
-              <p class="flash-message">{{ msg }}</p>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
-    </div>
+      {% endwith %}
+      {% block content %}{% endblock %}
+  </div>
+
+  {% block scripts %}{% endblock %}
 </body>
 </html>

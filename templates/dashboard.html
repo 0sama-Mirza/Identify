@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block styles %}
+<style>
+  /* General Layout */
+  .dashboard-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+  }
+  h1, h2 {
+      color: #333;
+  }
+  .welcome-message {
+      font-size: 1.2rem;
+      color: #555;
+      margin-bottom: 20px;
+  }
+  /* Quick Actions */
+  .quick-actions {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+  }
+  .action-button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      color: #fff;
+      background-color: #007BFF;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      text-decoration: none;
+      text-align: center;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .action-button:hover {
+      background-color: #0056b3;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .delete-button {
+      background-color: #ff4d4d; ; /* Green */
+  }
+
+  .delete-button:hover {
+      background-color: #ff0000;
+  }
+
+  .view-btn {
+      background-color: #ffc107; /* Yellow */
+  }
+
+  .view-btn:hover {
+      background-color: #e0a800;
+  }
+  
+  /* Events Section */
+  .events-section {
+      margin-top: 40px;
+      text-align: left;
+  }
+  .events-section h2 {
+      color: #007BFF;
+      border-bottom: 2px solid #007BFF;
+      display: inline-block;
+      padding-bottom: 5px;
+  }
+  .events-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      list-style-type: none;
+      padding: 0;
+      margin: 20px 0;
+  }
+  .event-item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      width: 100%;
+  }
+  .event-item:hover {
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  .event-banner-container {
+      flex: 1;
+      text-align: center;
+      margin-right: 15px;
+  }
+  .event-banner {
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      object-fit: cover;
+  }
+  .event-details {
+      flex: 2;
+      padding-left: 10px;
+  }
+  .event-details strong {
+      font-size: 1.5rem;
+      color: #007BFF;
+  }
+  .event-details p {
+      margin: 5px 0;
+      color: #555;
+  }
+  .no-events {
+      color: #777;
+      font-style: italic;
+      margin-top: 20px;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+  <h1>Welcome, {{ session.username }}!</h1>
+  <p class="welcome-message">Plan, organize, and manage your events in one place.</p>
+
+  <!-- Dashboard Quick Actions -->
+  <div class="quick-actions">
+    <a href="{{ url_for('event.create_event_route') }}" class="action-button">+ Create New Event</a>
+    <a href="{{ url_for('event.get_user_events_route') }}" class="action-button">📅 My Events</a>
+  </div>
+
+  <!-- Section for Upcoming Events -->
+  <div class="events-section">
+    <h2>Upcoming Events</h2>
+    {% if events %}
+    <ul class="events-list">
+      {% for event in events %}
+      <li class="event-item">
+        <!-- Event Banner -->
+      <!-- Event Banner -->
+      {% if event.banner_image %}
+        <img class="event-banner" src="{{ url_for('uploads.serve_event_image', event_id=event.id, filename=event.banner_image) }}" alt="{{ event.name }} Banner">
+      {% else %}
+        <img class="event-banner" src="https://via.placeholder.com/600x300?text=No+Banner+Image" alt="No Banner">
+      {% endif %}
+          
+        <!-- Event Details -->
+        <div class="event-details">
+          <strong>{{ event.name }}</strong> - {{ event.date }}
+          <p><strong>Location:</strong> {{ event.location }}</p>
+          <p><strong>Category:</strong> {{ event.category }}</p>
+          <p><strong>Public:</strong> {{ "Yes" if event.is_public else "No" }}</p>
+          <p>{{ event.description }}</p>
+          <a href="{{ url_for('event.get_event_route', event_id=event.id) }}" class="action-button view-btn"><span class="icon">👁️</span>View Details</a>
+          <a href="#" data-event-id="{{ event.id }}" class="action-button delete-button"><span class="icon">🗑️</span>Delete Event</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="no-events">You have no upcoming events. Start by creating one!</p>
+    {% endif %}
+  </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const deleteButtons = document.querySelectorAll(".delete-button");
+  
+      deleteButtons.forEach((button) => {
+        button.addEventListener("click", async (event) => {
+          event.preventDefault(); // Prevent default link behavior
+  
+          const eventId = button.dataset.eventId; // Get event ID from data attribute
+          const confirmation = confirm("Are you sure you want to delete this event?");
+  
+          if (confirmation) {
+            try {
+              const response = await fetch(`/events/${eventId}`, {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+  
+              if (response.ok) {
+                alert("Event deleted successfully!");
+                button.closest(".event-details").remove(); // Remove the event details from the DOM
+              } else {
+                const error = await response.json();
+                alert(`Failed to delete the event: ${error.error}`);
+              }
+            } catch (err) {
+              console.error("Error deleting the event:", err);
+              alert("An error occurred. Please try again.");
+            }
+          }
+        });
+      });
+    });
+  </script>
+  
+{% endblock %}

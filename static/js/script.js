@@ -28,10 +28,11 @@ const sliderBtnRight = document.querySelector('.slider__btn--right');
 const dotContainer = document.querySelector('.dots');
 ///////////////////////////////////////
 // Modal window
+const registerUrl = document.getElementById('url-container').getAttribute('data-register-url');
 let modalState = false;
 const openModal = function (e) {
   e.preventDefault();
-  window.location.href = "/register";
+  window.location.href = registerUrl;
   // modal.classList.remove('hidden');
   // overlay.classList.remove('hidden');
   // modalState = true;

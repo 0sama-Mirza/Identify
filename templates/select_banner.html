@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Select Banner Image{% endblock %}
+
+
+{% block styles %}
+<style>
+.container {
+  text-align: center;
+  padding: 20px;
+}
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Space between images */
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.image-option img {
+  width: 150px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.image-option img:hover {
+  border-color: #007bff; /* Highlight border on hover */
+}
+
+.image-option img.selected {
+  border-color: #28a745; /* Green border for selected image */
+}
+.select-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.select-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.select-btn:hover:enabled {
+  background-color: #0056b3;
+}
+.cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.cancel-btn:hover {
+  background-color: #bd2130;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+<div id="EventData" data-info="{{ event_id }}"></div>
+
+  <h1>Select Banner Image</h1>
+
+  <div class="image-grid">
+    {% for image in images %}
+    <div class="image-option">
+      <img 
+        src="{{ url_for('uploads.serve_event_image', event_id=event_id, filename=image) }}" 
+        alt="Banner Option" 
+        class="selectable-banner" 
+        data-filename="{{ image }}">
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Select Button -->
+  <button id="select-banner-btn" class="btn select-btn" disabled>Select Banner Image</button>
+
+  <!-- Cancel Button -->
+  <a href="{{ url_for('event.get_event_route', event_id=event_id) }}" class="btn cancel-btn">Cancel</a>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const images = document.querySelectorAll(".selectable-banner"); // Get all images
+    const selectButton = document.getElementById("select-banner-btn"); // "Select Banner Image" button
+    const EventClass = document.getElementById('EventData');
+    const eventId = EventClass.dataset.info;
+    console.log(eventId);
+    if (!eventId) {
+        console.error("Event ID is undefined. Please ensure the data-event-id attribute is set in the HTML container.");
+        return;
+    }
+
+    let selectedImageFilename = null; // Track the selected image filename
+
+    // Handle image selection
+    images.forEach((image) => {
+        image.addEventListener("click", () => {
+            // Remove the 'selected' class from all images
+            images.forEach((img) => img.classList.remove("selected"));
+
+            // Add the 'selected' class to the clicked image
+            image.classList.add("selected");
+
+            // Store the selected image filename
+            selectedImageFilename = image.dataset.filename;
+
+            // Enable the "Select Banner Image" button
+            selectButton.disabled = false;
+
+            console.log(`Selected Image: ${selectedImageFilename}`);
+        });
+    });
+
+    // Handle "Select Banner Image" button click
+    selectButton.addEventListener("click", async () => {
+        if (!selectedImageFilename) {
+            alert("No image selected!");
+            return;
+        }
+
+        try {
+            // Send the selected image filename to the server
+            const response = await fetch(`/events/${eventId}/select_banner`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ banner_image: selectedImageFilename }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update the banner on the server.");
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                alert("Banner updated successfully!");
+                // Redirect to the event details page
+                window.location.href = `/events/${eventId}`;
+            } else {
+                alert(`Error: ${result.error}`);
+            }
+        } catch (error) {
+            console.error("Error updating banner:", error);
+            alert("Failed to update banner. Please try again.");
+        }
+    });
+});
+</script>
+{% endblock %}
