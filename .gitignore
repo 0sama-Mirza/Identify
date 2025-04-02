@@ -1,9 +1,9 @@
 venv/
-__pycache__/
 *.pyc
 *.db
 uploads/
-database.ddb
+**/__pycache__/
+flask_session
+database.db
 database.sqbpro
-flask_sesion/
-app/utils/__pycache__/
+active_py_env.sh

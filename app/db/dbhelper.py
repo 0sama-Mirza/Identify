@@ -59,7 +59,7 @@ def init_db(app):
                     banner_image INTEGER,                -- Links to the banner image in event_images table
                     created_at TEXT NOT NULL,
                     FOREIGN KEY(user_id) REFERENCES users(id) -- Ensures the event belongs to a user
-                    FOREIGN KEY(banner_image_id) REFERENCES event_images(id) -- Ensures banner image is valid
+                    FOREIGN KEY(banner_image) REFERENCES event_images(id) -- Ensures banner image is valid
                 )
             ''',
             "event_images": '''
