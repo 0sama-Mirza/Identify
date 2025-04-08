@@ -3,7 +3,7 @@ venv/
 *.db
 uploads/
 **/__pycache__/
-flask_session
+flask_session/
 database.db
 database.sqbpro
 active_py_env.sh
