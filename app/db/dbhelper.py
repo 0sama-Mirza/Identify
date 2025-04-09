@@ -54,6 +54,7 @@ def init_db(app):
                     category TEXT,
                     event_date TEXT,
                     location TEXT,
+                    status TEXT NOT NULL DEFAULT 'unsorted',
                     num_attendees INTEGER,
                     is_public INTEGER DEFAULT 1,
                     banner_image INTEGER,                -- Links to the banner image in event_images table
