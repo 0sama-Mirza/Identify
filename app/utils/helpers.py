@@ -59,12 +59,6 @@ def sanitize_string(input_string):
     """
     return re.sub(r"[^\w\s]", "", input_string.strip()) if input_string else input_string
 
-# For uploads.py
-def strip_uploads_path(uploads_prefix,full_path):
-    # uploads_prefix = "/home/archmax/startup/Evently/uploads/"
-    # Replace the prefix with an empty string
-    return full_path[37:]
-
 def get_event_image_id_via_image_path(image_path):
     """
     Fetches the event_image_id for the given image_path.

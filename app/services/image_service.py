@@ -24,7 +24,7 @@ def add_images_to_event_db(event_id, images):
 
     print(f"Processing {len(images)} images for event ID: {event_id}")
 
-    saved_image_paths = []  # Collect paths of successfully saved images
+    saved_images = []  # Collect paths of successfully saved images
 
     # Step 1: Save images to the file system
     for image in images:
@@ -34,14 +34,14 @@ def add_images_to_event_db(event_id, images):
             if "error" in save_response:
                 print(f"Error saving image: {save_response['error']}")
                 return {"error": f"Failed to save image: {save_response['error']}", "status_code": 500}
-            saved_image_paths.append(save_response.get("file_path"))
-            print(f"Image successfully saved: {save_response.get('file_path')}")
+            saved_images.append(save_response.get("image.filename"))
+            print(f"Image successfully saved: {save_response.get('image.filename')}")
         except Exception as e:
             print(f"Unexpected error while saving image '{image.filename}': {e}")
             return {"error": f"Failed to save image: {str(e)}", "status_code": 500}
 
     print("\n=== Debug: All images successfully saved ===\n")
-    print(f"Saved image paths: {saved_image_paths}")
+    print(f"Saved images: {saved_images}")
 
     # Step 2: Add image paths to the database
     try:
@@ -53,13 +53,13 @@ def add_images_to_event_db(event_id, images):
             INSERT INTO event_images (event_id, image_path, uploaded_at)
             VALUES (?, ?, ?);
             '''
-            for file_path in saved_image_paths:
+            for image in saved_images:
                 try:
-                    cur.execute(image_query, (event_id, file_path, uploaded_at))
-                    print(f"Image record added to database: {file_path}")
+                    cur.execute(image_query, (event_id, image, uploaded_at))
+                    print(f"Image record added to database: {image}")
                 except Exception as e:
-                    print(f"Error adding image record for path '{file_path}' to database: {e}")
-                    return {"error": f"Failed to add image '{file_path}' to database: {str(e)}", "status_code": 500}
+                    print(f"Error adding image record for path '{image}' to database: {e}")
+                    return {"error": f"Failed to add image '{image}' to database: {str(e)}", "status_code": 500}
 
             conn.commit()  # Commit the transaction
             print(f"All image records for event ID {event_id} added successfully.")

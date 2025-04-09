@@ -69,7 +69,7 @@ def save_image_to_event_folder(event_id, image):
         image.save(file_path)
         print(f"Image saved to {file_path}")
 
-        return {"success": True, "file_path": file_path, "status_code": 201}
+        return {"success": True, "image.filename": image.filename, "status_code": 201}
 
     except Exception as e:
         print(f"Error saving image for event ID {event_id}: {e}")

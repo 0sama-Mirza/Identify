@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session, current_app, send_from_directory, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from app.services.image_service import add_images_to_event_db, link_image_to_album
-from app.utils.helpers import validate_required_fields, is_logged_in, strip_uploads_path
+from app.utils.helpers import validate_required_fields, is_logged_in
 from app.services.album_service import add_images_to_album_service
 from app.services.event_service import set_banner_image
 from app.db.dbhelper import get_db_connection
@@ -14,15 +14,28 @@ uploads_bp = Blueprint('uploads', __name__, url_prefix='/uploads')
 @uploads_bp.route('/event/<int:event_id>/image/<path:filename>', methods=['GET'])
 def serve_event_image(event_id, filename):
     """
-    Serve an image from the uploads folder for a specific event.
+    Serve an image from the 'original_images' folder for a specific event.
     """
     try:
         # Use UPLOAD_FOLDER from the app configuration
         uploads_dir = current_app.config['UPLOAD_FOLDER']
-        filename = strip_uploads_path(uploads_dir,filename)
-        return send_from_directory(uploads_dir, filename)
+        
+        # Construct the path for the event-specific folder
+        event_folder = f"event_{event_id}"
+        image_folder = os.path.join(uploads_dir, event_folder, "original_images")
+
+        # Ensure the image exists in the correct folder
+        image_path = os.path.join(image_folder, filename)
+        
+        # Check if the file exists, and return it
+        if not os.path.exists(image_path):
+            raise FileNotFoundError
+        
+        return send_from_directory(image_folder, filename)
+    
     except FileNotFoundError:
         return jsonify({"error": "Image not found"}), 404
+
 
 
 @uploads_bp.route('/event/<int:event_id>/upload', methods=['POST'])
@@ -60,6 +73,7 @@ def upload_event_images(event_id):
     print("\n\n\t\t\t# Step 4: Upload images to the event\n")
     try:
         print(f"[INFO] Uploading images to event ID: {event_id}")
+        print("\n***** files: ",files)
         response = add_images_to_event_db(event_id, files)
 
         # Check for errors from add_images_to_event_db
