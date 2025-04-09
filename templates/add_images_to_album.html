@@ -60,7 +60,7 @@
     <div class="image-grid">
       {% for image in event_images %}
         <div class="image-item">
-          <img src="/uploads/event/{{ album.event_id }}/image{{ image.image_path }}" alt="Event Image">
+          <img src="/uploads/event/{{ album.event_id }}/image/{{ image.image_path }}" alt="Event Image">
           <label>
             <input type="checkbox" name="image_ids" value="{{ image.image_id }}">
             Add Image
