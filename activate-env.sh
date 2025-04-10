@@ -12,12 +12,17 @@ ENV_DIR="$HOME/Python-Environments"
 if [ ! -d "$ENV_DIR" ]; then
     echo "Error: Directory '$ENV_DIR' does not exist!"
     echo "If you dont have the environment then enter these commands:"
-    echo "1) mkdir Python-Environments"
+    echo "1) mkdir ~/Python-Environments"
     echo "2) python -m venv ~/Python-Environments/flaskenv"
     echo "3) Run this script again."
     echo "4) pip install -r requirements.txt"
     return 1
 fi
+
+echo "If you dont have the environment then enter these commands:"
+echo "1) python -m venv ~/Python-Environments/Your-Env-Name"
+echo "3) Run this script again."
+echo "4) pip install -r requirements.txt (if it exists)"
 
 echo "Available Virtual Environments:"
 echo "--------------------------------"
