@@ -430,3 +430,78 @@ def delete_event(event_id, user_id):
         conn.close()
         print(f"[DEBUG] Database connection closed")
 
+
+ALLOWED_EVENT_STATUSES = {'sorted', 'unsorted', 'processing'}
+
+def update_event_status(event_id, new_status):
+    """
+    Updates the status of a specific event using the 'with' statement,
+    assuming get_db_connection provides a context manager.
+    Validates the status before attempting the update.
+
+    Args:
+        event_id (int): The ID of the event to update.
+        new_status (str): The desired new status. Must be one of
+                          ALLOWED_EVENT_STATUSES.
+
+    Returns:
+        bool: True if the update transaction was successful (committed),
+              False if the status is invalid or a database error occurred (rolled back).
+    """
+    # 1. Validate the new_status
+    if new_status not in ALLOWED_EVENT_STATUSES:
+        print(f"[SERVICE-ERROR] Invalid status provided: '{new_status}'. Allowed are: {ALLOWED_EVENT_STATUSES}")
+        return False
+
+    success = False
+    print(f"[SERVICE] Attempting to set status='{new_status}' for event_id: {event_id}")
+
+    try:
+        # 2. Use 'with' statement for automatic connection management
+        # This assumes get_db_connection() returns an object supporting __enter__/__exit__
+        with get_db_connection() as conn:
+            # Check if connection is valid (if context manager could return None)
+            if conn is None:
+                 print("[SERVICE-ERROR] Failed to get database connection from context manager.")
+                 return False # Cannot proceed
+
+            try:
+                # 3. Perform DB operation within a nested try for rollback capability
+                cur = conn.cursor()
+                sql = "UPDATE events SET status = ? WHERE id = ?"
+                cur.execute(sql, (new_status, event_id))
+
+                if cur.rowcount == 0:
+                    print(f"[SERVICE-WARN] Event ID {event_id} not found to update status.")
+                    # No changes needed, but the transaction should still be finalized cleanly
+                    conn.commit() # Explicitly commit even if no rows changed
+                    success = True
+                else:
+                    print(f"[SERVICE] Rows affected: {cur.rowcount}. Committing status='{new_status}' for event_id: {event_id}")
+                    # 4. Commit the successful update INSIDE the 'with' block
+                    conn.commit()
+                    success = True
+
+            except sqlite3.Error as db_err:
+                # 5. Rollback on specific DB errors INSIDE the 'with' block
+                print(f"[SERVICE-ERROR] DB Error during update: {db_err}")
+                try:
+                    print("[SERVICE] Rolling back transaction...")
+                    conn.rollback()
+                except Exception as rb_err:
+                    print(f"[SERVICE-ERROR] Rollback failed: {rb_err}")
+                success = False # Ensure success is False on error
+
+    except sqlite3.Error as conn_err:
+        # Catch errors during connection acquisition or potentially during context exit
+        print(f"[SERVICE-ERROR] Database connection/operation error: {conn_err}")
+        success = False
+    except Exception as e:
+        # Catch any other unexpected errors outside the 'with' if necessary
+        print(f"[SERVICE-ERROR] Unexpected error: {e}")
+        success = False
+    # No 'finally' block needed for conn.close() because the 'with' statement handles it automatically
+    # when exiting the block (normally or via exception).
+
+    print(f"[SERVICE] Finished update_event_status. Success: {success}")
+    return success

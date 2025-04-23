@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 from app.services.image_service import add_images_to_event_db, link_image_to_album
 from app.utils.helpers import validate_required_fields, is_logged_in
 from app.services.album_service import add_images_to_album_service
-from app.services.event_service import set_banner_image
+from app.services.event_service import set_banner_image, update_event_status
 from app.db.dbhelper import get_db_connection
 import os
 
@@ -83,6 +83,16 @@ def upload_event_images(event_id):
             return redirect(url_for('event.get_event_route', event_id=event_id))
 
         print("[INFO] Images successfully uploaded and added to the database.")
+
+        # ====> Step 4.5: UPDATE EVENT STATUS VIA GENERAL SERVICE <====
+        print("\n# Step 4.5: Update event status via service")
+        print(f"[ROUTE-INFO] Calling update_event_status for event ID: {event_id} with status 'unsorted'")
+        status_updated = update_event_status(event_id, 'unsorted') # Call the new function
+        if not status_updated:
+            print(f"[ROUTE-WARN] Failed to set event {event_id} status to 'unsorted', but continuing process.")
+            # flash("Could not reset event sorting status, processing might be delayed.", "warning")
+        else:
+            print(f"[ROUTE-INFO] Event status set to 'unsorted' successfully (or event not found).")
 
     except Exception as e:
         print(f"[ERROR] Exception occurred during image upload: {str(e)}")
