@@ -69,6 +69,7 @@ def init_db(app):
                     event_id INTEGER NOT NULL,               -- Links to the event
                     image_path TEXT NOT NULL,                -- Path to the image file
                     uploaded_at TEXT NOT NULL,               -- Timestamp of upload
+                    status TEXT NOT NULL DEFAULT 'unsorted',
                     FOREIGN KEY(event_id) REFERENCES events(id)
                 )
             ''',
@@ -106,3 +107,4 @@ def init_db(app):
 
         conn.commit()
         conn.close()
+        

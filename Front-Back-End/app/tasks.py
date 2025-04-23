@@ -41,7 +41,12 @@ def check_and_process_unsorted_events(app_instance):
             event_id = event_row['id']
             print(f"  -> Found unsorted Event ID: {event_id}. Processing this event only.")
 
-            cursor.execute("SELECT image_path FROM event_images WHERE event_id = ?", (event_id,))
+            cursor.execute("""
+                SELECT image_path 
+                FROM event_images 
+                WHERE event_id = ? AND status = 'unsorted'
+            """, (event_id,))
+
             image_rows = cursor.fetchall()
 
             if not image_rows:
@@ -106,7 +111,13 @@ def check_and_process_unsorted_events(app_instance):
             print(f"  -> Attempting to send {len(files_to_upload)} allowed file(s)...")
             api_call_successful = False
             try:
-                response = requests.post(fastapi_url, files=files_to_upload, timeout=180)
+                response = requests.post(
+                    fastapi_url,
+                    files=files_to_upload,
+                    data={"event_id": str(event_id)},  # Send event ID as a form field
+                    timeout=180
+                )
+
                 if response.status_code == 200:
                     api_call_successful = True
                     try: msg = response.json().get('message', 'OK')
@@ -128,9 +139,14 @@ def check_and_process_unsorted_events(app_instance):
 
             # --- Update status ---
             if api_call_successful:
-                print(f"SCHEDULER TASK: Updating status to 'sorted' for event {event_id}")
+                print(f"SCHEDULER TASK: Updating status to 'processing' for event {event_id}")
                 try:
-                    cursor.execute("UPDATE events SET status = 'sorted' WHERE id = ?", (event_id,))
+                    cursor.execute("UPDATE events SET status = 'processing' WHERE id = ?", (event_id,))
+                    cursor.execute("""
+                        UPDATE event_images 
+                        SET status = 'processing' 
+                        WHERE event_id = ? AND status = 'unsorted'
+                    """, (event_id,))
                     conn.commit()
                     print(f"SCHEDULER TASK: Committed status update for event {event_id}.")
                 except sqlite3.Error as e_update:
