@@ -8,7 +8,7 @@
 
    - On Windows:
 
-     `python -m venv/Your-Env-Name`
+     `python -m venv Your-Env-Name`
 
 2. Name the first one Flask and the second one Fastapi or whatever
 3. Activate the both environments in 2 separate terminals by:

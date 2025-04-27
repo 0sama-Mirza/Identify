@@ -30,8 +30,8 @@ def insert_event_into_deepface_jobs(event_id, db_path='database.db'):
     conn.commit()
     conn.close()
 
-# Function to get unsorted events from deepface_jobs table
-def get_unsorted_events(db_path='database.db'):
+# Function to get unsorted/cropped events from deepface_jobs table
+def get_unsorted_event(db_path='database.db'):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -39,6 +39,22 @@ def get_unsorted_events(db_path='database.db'):
         SELECT event_id
         FROM deepface_jobs
         WHERE status = 'unsorted'
+        LIMIT 1
+    """)
+    events = cursor.fetchall()
+
+    conn.close()
+    return events
+
+def get_cropped_event(db_path='database.db'):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT event_id
+        FROM deepface_jobs
+        WHERE status = 'cropped'
+        LIMIT 1
     """)
     events = cursor.fetchall()
 
@@ -57,5 +73,3 @@ def update_event_status(event_id, status, db_path='database.db'):
     """, (status, event_id))
     conn.commit()
     conn.close()
-
-
