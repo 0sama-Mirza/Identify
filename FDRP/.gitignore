@@ -3,4 +3,7 @@ database.db
 database.sqbpro
 Cropped_Events
 output_faces
+small_faces_detected_list.txt
+small_no_faces_detected_list.txt
+Small_Results.txt
 __pycache__

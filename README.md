@@ -36,3 +36,22 @@
    `uvicorn main:app --reload`
 
    - This will run on http://127.0.0.1:8000/
+
+
+
+## Front-Back-End (flask-env)
+```
+pip install Flask Flask-Session Flask-APScheduler requests
+python run.py
+```
+## FDRP (Face Detection and Recognition Pipeline)
+### 1st environment (fast-api)
+```
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+### 2nd environment (deepface-env)
+```
+pip install opencv-python deepface tf-keras
+python face_processing_manager.py
+```

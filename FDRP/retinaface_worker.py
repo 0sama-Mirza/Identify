@@ -16,7 +16,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-def process_images(input_folder, output_folder):
+def extract_faces(input_folder, output_folder):
     print("\n\t\t\tYo YO Yo Yo Yo\n")
     # Output folders for faces detected and no face
     faces_detected_folder = os.path.join(output_folder, 'Face')
