@@ -49,4 +49,3 @@ if [[ $ENV_NUMBER =~ ^[0-9]+$ ]] && (( ENV_NUMBER >= 1 && ENV_NUMBER <= ${#ENVS[
 else
     echo "Invalid selection. Please try again."
 fi
-
