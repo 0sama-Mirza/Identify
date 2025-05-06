@@ -11,7 +11,7 @@ embeddings_file_path = '../Cropped_Events/event_1/facenet_embeddings.pkl'
 output_album_dir = '../Cropped_Events/event_1/albums_hdbscan'
 custom_source_path = '../Cropped_Events/event_1/Cropped_Faces_Align'
 min_cluster_size = 3  # Adjust this parameter (minimum size of clusters)
-min_samples = 1   # Adjust this parameter (controls robustness to noise)
+min_samples = None   # Adjust this parameter (controls robustness to noise)
 
 try:
     with open(embeddings_file_path, 'rb') as f:
