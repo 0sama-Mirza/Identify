@@ -183,14 +183,14 @@ if __name__ == '__main__':
     if initial_clusters:
         print("\nInitial Clusters:")
         print(initial_clusters)
-
-        refined_clusters = refine_clusters_by_highest_similarity(initial_clusters, base_directory)
-        if refined_clusters:
-            print("\nRefined Clusters:")
-            print(refined_clusters)
-            create_albums_from_clusters(refined_clusters, base_directory)
-        else:
-            print("Cluster refinement failed.")
-            create_albums_from_clusters(initial_clusters, base_directory) #create albums even if refinement fails
+        create_albums_from_clusters(initial_clusters, base_directory)
+        # refined_clusters = refine_clusters_by_highest_similarity(initial_clusters, base_directory)
+        # if refined_clusters:
+        #     print("\nRefined Clusters:")
+        #     print(refined_clusters)
+        #     create_albums_from_clusters(refined_clusters, base_directory)
+        # else:
+        #     print("Cluster refinement failed.")
+        #     create_albums_from_clusters(initial_clusters, base_directory) #create albums even if refinement fails
     else:
         print("Initial clustering failed.")

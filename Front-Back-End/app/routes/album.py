@@ -1,3 +1,10 @@
+from collections import defaultdict
+import numpy as np  # Make sure numpy is imported if you're using np.int64
+import re
+import sqlite3  # Import the sqlite3 module
+from datetime import datetime  # Import the datetime module
+
+
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from app.services.album_service import (
     create_album,
@@ -166,3 +173,94 @@ def delete_images_from_album():
     print("\n\n\n\t\t\tDeleting Selected Images From An Album(Not all_photos) Route\n\n")
     print("===========================================================================================\n")
     return delete_images_album(image_ids,album_id)
+
+
+def get_event_image_id_by_path(conn, image_path):
+    """Helper function to get the event_image_id from the base image path."""
+    base_image_name = re.sub(r'_face_\d+\.jpg$', '', image_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM event_images WHERE image_path = ?", (base_image_name,))
+    result = cursor.fetchone()
+    return result['id'] if result else None
+
+@album_bp.route('/process_album_data', methods=['POST'])
+def process_album_data():
+    """
+    Takes a JSON payload with 'event_id' and 'albums' (where keys are album names
+    and values are lists of image filenames). Creates albums and adds images.
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    event_id = data.get('event_id')
+    if event_id is None:
+        return jsonify({'error': 'Missing event_id in the request'}), 400
+
+    albums_data = data.get('albums')
+    if not albums_data:
+        return jsonify({'error': 'Missing album data in the request'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    results = {}
+
+    for album_name_raw, image_filenames in albums_data.items():
+        try:
+            album_name = str(album_name_raw)
+
+            # Use the event_id from the request
+            cursor.execute("SELECT id FROM albums WHERE event_id = ? AND name = ?", (event_id, album_name))
+            album_result = cursor.fetchone()
+
+            if album_result:
+                album_id = album_result['id']
+                results[album_name] = {'status': 'existing', 'images_added': 0, 'errors': []}
+            else:
+                created_at = datetime.now().isoformat()
+                cursor.execute(
+                    "INSERT INTO albums (event_id, name, visibility, created_at) VALUES (?, ?, ?, ?)",
+                    (event_id, album_name, 'private', created_at),
+                )
+                album_id = cursor.lastrowid
+                results[album_name] = {'status': 'created', 'images_added': 0, 'errors': []}
+
+            added_count = 0
+            errors = []
+            for image_filename in image_filenames:
+                image_path = image_filename
+                event_image_id = get_event_image_id_by_path(conn, image_path)
+
+                if event_image_id:
+                    cursor.execute(
+                        "SELECT id FROM album_images WHERE album_id = ? AND event_image_id = ?",
+                        (album_id, event_image_id),
+                    )
+                    if cursor.fetchone() is None:
+                        cursor.execute(
+                            "INSERT INTO album_images (album_id, event_image_id, added_at) VALUES (?, ?, ?)",
+                            (album_id, event_image_id, datetime.now().isoformat()),
+                        )
+                        added_count += 1
+                    else:
+                        errors.append(f"Image '{image_filename}' already in album '{album_name}'.")
+                else:
+                    errors.append(f"Event image with path '{image_path}' not found.")
+
+            results[album_name]['images_added'] = added_count
+            if errors:
+                results[album_name]['errors'] = errors
+
+            conn.commit()
+
+        except sqlite3.Error as e:
+            conn.rollback()
+            return jsonify({'error': f'Database error processing album {album_name}: {e}'}), 500
+        except Exception as e:
+            conn.rollback()
+            return jsonify({'error': f'Error processing album {album_name}: {e}'}), 500
+        finally:
+            pass
+
+    conn.close()
+    return jsonify(results), 200

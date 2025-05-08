@@ -95,5 +95,5 @@ def cluster_faces_hdbscan(base_directory, min_cluster_size=3, min_samples=None):
                 print(f"Warning: Source file not found: {source_file_path}")
             except Exception as e:
                 print(f"Error copying '{os.path.basename(face_filename)}': {e}")
-
+    return clustered_faces
     print("\nImage organization based on HDBSCAN clustering complete!")
