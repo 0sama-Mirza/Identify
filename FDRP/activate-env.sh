@@ -25,9 +25,9 @@ fi
 
 echo "If you dont have the environment then enter these commands:"
 echo "1) python -m venv ~/Python-Environments/Your-Env-Name"
-echo "3) Run this script again."
-echo "4) pip install -r requirements.txt (if it exists)"
-echo "5) uvicorn main:app --reload"
+echo "2) Run this script again."
+echo "3) pip install -r requirements.txt (if it exists)"
+echo "4) uvicorn main:app --reload"
 echo "Available Virtual Environments:"
 echo "--------------------------------"
 

@@ -7,9 +7,10 @@ import os
 import shutil
 
 # --- Configuration ---
-embeddings_file_path = '../Cropped_Events/event_1/facenet_embeddings.pkl'
-output_album_dir = '../Cropped_Events/event_1/albums_clustered'
-custom_source_path = '../Cropped_Events/event_1/Cropped_Faces_Align'
+base_dir = '../Cropped_Events/event_1/'
+embeddings_file_path = base_dir+'facenet512_embeddings.pkl'
+output_album_dir = base_dir+'albums_dbscan'
+custom_source_path = base_dir+'/Cropped_Faces_Align'
 similarity_threshold = 0.1  # Adjust this threshold to control clustering
 
 try:

@@ -6,9 +6,10 @@ import os
 import shutil
 
 # --- Configuration ---
-embeddings_file_path = '../Cropped_Events/event_1/facenet_embeddings.pkl'
-output_album_dir = '../Cropped_Events/event_1/albums_dbscan'
-custom_source_path = 'Cropped_Events/event_1/Cropped_Faces_Align'
+base_dir = '../Cropped_Events/event_1/'
+embeddings_file_path = base_dir+'facenet512_embeddings.pkl'
+output_album_dir = base_dir+'albums_dbscan'
+custom_source_path = base_dir+'/Cropped_Faces_Align'
 eps = 0.1    # Adjust this parameter (maximum distance between samples)
 min_samples = 3  # Adjust this parameter (minimum samples in a neighborhood)
 
