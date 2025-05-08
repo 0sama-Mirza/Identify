@@ -174,8 +174,8 @@ def extract_faces(input_folder, output_folder):
     print("Images Have Been Successfully Filtered Out.")
     display_statistics(Total_Faces, Total_NoFaces)
 
-    with open("small_faces_detected_list.txt", "w") as f:
-        f.write("\n".join(Face_Array))
-    with open("small_no_faces_detected_list.txt", "w") as f:
-        f.write("\n".join(No_Face_Array))
+    # with open("small_faces_detected_list.txt", "w") as f:
+    #     f.write("\n".join(Face_Array))
+    # with open("small_no_faces_detected_list.txt", "w") as f:
+    #     f.write("\n".join(No_Face_Array))
     return
