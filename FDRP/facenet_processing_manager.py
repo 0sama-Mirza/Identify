@@ -1,5 +1,7 @@
+import sys
 import time
 from db_helper import get_cropped_event, update_event_status
+sys.path.append("FDRP-Workers")
 from facenet_worker import extract_face_embeddings
 def main_processing_loop(db_path='database.db', check_interval=5):
     while True:  # Infinite loop to keep checking for new events
