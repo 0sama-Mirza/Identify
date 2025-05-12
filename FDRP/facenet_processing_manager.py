@@ -1,21 +1,44 @@
 import sys
 import time
-from db_helper import get_cropped_event, update_event_status
+import subprocess
 sys.path.append("FDRP-Workers")
-from facenet_worker import extract_face_embeddings
+from healpers.db_helper import get_cropped_event, update_event_status
+
+print("FaceNet Working......")
+print("Looking For cropped events")
+
+def run_embedding_subprocess(input_folder, output_folder):
+    try:
+        result = subprocess.run(
+            [sys.executable, "FDRP-Workers/facenet_subprocess_entry.py", input_folder, output_folder],
+            capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            print(f"[ERROR] Subprocess failed with code {result.returncode}")
+            print("STDOUT:\n", result.stdout)
+            print("STDERR:\n", result.stderr)
+        else:
+            print("[INFO] Subprocess completed successfully.")
+            print("STDOUT:\n", result.stdout)
+    except Exception as e:
+        print(f"[EXCEPTION] Failed to run subprocess: {e}")
+
 def main_processing_loop(db_path='database.db', check_interval=5):
-    while True:  # Infinite loop to keep checking for new events
-        event_id_result = get_cropped_event(db_path)  # Get unsorted event IDs
-        print("event_id_result: ", event_id_result)
+    while True:
+        event_id_result = get_cropped_event(db_path)
         if event_id_result:
             event_id = event_id_result[0][0]
             print(f"Processing event_id: {event_id}")
-            input_folder = f"Cropped_Events/event_{event_id}/Cropped_Faces_Align"  # Construct input folder path
-            output_folder = f"Cropped_Events/event_{event_id}"  # Construct output folder path
-            extract_face_embeddings(input_folder, output_folder)  # Run face detection
+            input_folder = f"Cropped_Events/event_{event_id}/Cropped_Faces_Align"
+            output_folder = f"Cropped_Events/event_{event_id}"
+
+            run_embedding_subprocess(input_folder, output_folder)
+
             update_event_status(event_id, "emb_ext")
-        else:
-            print("FaceNet: No unsorted events found.")
-        time.sleep(check_interval)  # Wait for the specified interval before checking again
+            print("FaceNet Working......")
+            print("Looking For cropped events")
+
+        time.sleep(check_interval)
+
 if __name__ == "__main__":
     main_processing_loop()

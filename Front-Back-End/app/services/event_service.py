@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 import random
+import sqlite3
 
 
 def get_all_public_events():

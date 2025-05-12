@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session, current_app, send_from_directory, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from app.services.image_service import add_images_to_event_db, link_image_to_album
-from app.utils.helpers import validate_required_fields, is_logged_in
+from app.utils.helpers import validate_required_fields, is_logged_in, rename_new_upload_event_images
 from app.services.album_service import add_images_to_album_service
 from app.services.event_service import set_banner_image, update_event_status
 from app.db.dbhelper import get_db_connection
@@ -60,6 +60,7 @@ def upload_event_images(event_id):
         return redirect(url_for('event.get_event_route', event_id=event_id))
 
     files = request.files.getlist('event_images')
+    files = rename_new_upload_event_images(files,event_id)
     print(f"[INFO] Files received: {[file.filename for file in files]}")
 
     # Step 3: Validate files

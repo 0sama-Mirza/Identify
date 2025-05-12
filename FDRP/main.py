@@ -3,11 +3,12 @@ import shutil
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 from typing import List
-from db_helper import insert_event_into_deepface_jobs
+from healpers.db_helper import insert_event_into_deepface_jobs, update_event_status
+from match_face import find_best_match
 
 # --- Configuration ---
 UPLOAD_DIRECTORY = "received_images"
-OUTPUT_DIRECTORY = "output_faces"
+OUTPUT_DIRECTORY = "user_data"
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
 
@@ -93,3 +94,36 @@ async def upload_multiple_images(
 
     finally:
         app.state.status = "idle"
+        update_event_status(event_id, "unsorted")
+
+
+@app.post("/match-face/")
+async def match_face_endpoint(
+    file: UploadFile,
+    user_id: int = Form(...),
+    event_id: int = Form(...)
+):
+    # Step 1: Create user directory
+    user_folder = f"user_data/{user_id}"
+    os.makedirs(user_folder, exist_ok=True)
+
+    # Step 2: Save the uploaded image with original filename
+    image_path = os.path.join(user_folder, file.filename)
+    with open(image_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Step 3: Run matching
+    try:
+        cluster_id, best_match_filename, similarity = find_best_match(user_id, event_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+    # Step 4: Return result (with fix)
+    return {
+        "matched_cluster": int(cluster_id),  # Convert numpy.int64 to native int
+        "matched_image": best_match_filename,
+        "similarity_score": round(float(similarity), 4)  # Ensure float is native
+    }

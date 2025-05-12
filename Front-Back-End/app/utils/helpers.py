@@ -2,6 +2,8 @@ from flask import session
 import re
 from datetime import datetime
 from app.db.dbhelper import get_db_connection
+from werkzeug.datastructures import FileStorage
+import os
 
 def allowed_file(filename):
     """
@@ -85,3 +87,68 @@ def get_event_image_id_via_image_path(image_path):
     except Exception as e:
         print(f"[ERROR] Exception occurred while fetching event_image_id: {str(e)}")
         return None
+
+
+def get_next_image_index(event_id):
+    """
+    Returns the next index number for renaming images for the given event.
+    """
+    try:
+        with get_db_connection() as conn:  # Reuses your helper
+            cur = conn.cursor()
+
+            query = '''
+            SELECT COUNT(*) as count
+            FROM event_images
+            WHERE event_id = ?;
+            '''
+            cur.execute(query, (event_id,))
+            result = cur.fetchone()
+
+            if result:
+                return result['count'] + 1  # Start from next index
+            else:
+                return 1  # Default fallback
+
+    except Exception as e:
+        print(f"[ERROR] Failed to get next image index: {str(e)}")
+        return 1
+
+def rename_event_images(file_list):
+    renamed_files = []
+    
+    for index, file in enumerate(file_list, start=1):
+        # Extract original extension
+        _, ext = os.path.splitext(file.filename)
+        new_filename = f"Imj{index}{ext}"
+        
+        # Create a new FileStorage object with the same stream and new filename
+        renamed_file = FileStorage(
+            stream=file.stream,
+            filename=new_filename,
+            content_type=file.content_type,
+            content_length=file.content_length,
+            headers=file.headers
+        )
+        renamed_files.append(renamed_file)
+
+    return renamed_files
+
+def rename_new_upload_event_images(file_list, event_id, db_path='database.db'):
+    renamed_files = []
+    start_index = get_next_image_index(event_id)
+
+    for i, file in enumerate(file_list, start=start_index):
+        _, ext = os.path.splitext(file.filename)
+        new_filename = f"Imj{i}{ext}"
+
+        renamed_file = FileStorage(
+            stream=file.stream,
+            filename=new_filename,
+            content_type=file.content_type,
+            content_length=file.content_length,
+            headers=file.headers
+        )
+        renamed_files.append(renamed_file)
+
+    return renamed_files

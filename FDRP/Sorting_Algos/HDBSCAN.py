@@ -68,9 +68,17 @@ def cluster_faces_hdbscan(base_directory, min_cluster_size=3, min_samples=None):
             print(f"- {name}")
         print("-" * 20)
 
-
     print(clustered_faces)
     
+    # Save clustered_faces dictionary to a .pkl file
+    clustered_faces_path = os.path.join(base_directory, 'clustered_faces.pkl')
+    try:
+        with open(clustered_faces_path, 'wb') as f:
+            pickle.dump(clustered_faces, f)
+        print(f"\nClustered faces saved to '{clustered_faces_path}'")
+    except Exception as e:
+        print(f"Failed to save clustered_faces.pkl: {e}")
+
     # --- Create Albums based on Clustering ---
     if not os.path.exists(output_album_dir):
         os.makedirs(output_album_dir)

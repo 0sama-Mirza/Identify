@@ -1,7 +1,8 @@
 import sqlite3
 
 def init_deepface_jobs_table(db_path='database.db'):
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection(db_path)
+    conn.execute("PRAGMA journal_mode=WAL;")
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS deepface_jobs (
@@ -11,11 +12,11 @@ def init_deepface_jobs_table(db_path='database.db'):
     """)
     conn.commit()
     conn.close()
-init_deepface_jobs_table()
 
 # Function to get a database connection
-def get_db_connection(db_path='database.db'):
-    conn = sqlite3.connect(db_path)
+def get_db_connection(db_path='database.db', timeout=10):
+    conn = sqlite3.connect(db_path, timeout=timeout)
+    conn.execute("PRAGMA journal_mode=WAL;")
     return conn
 
 # Function to insert or update the deepface_jobs table
@@ -25,14 +26,14 @@ def insert_event_into_deepface_jobs(event_id, db_path='database.db'):
 
     cursor.execute("""
         INSERT OR REPLACE INTO deepface_jobs (event_id, status)
-        VALUES (?, 'unsorted')
+        VALUES (?, 'waiting')
     """, (event_id,))
     conn.commit()
     conn.close()
 
 # Function to get unsorted/cropped events from deepface_jobs table
 def get_unsorted_event(db_path='database.db'):
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -47,7 +48,7 @@ def get_unsorted_event(db_path='database.db'):
     return events
 
 def get_cropped_event(db_path='database.db'):
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -63,7 +64,7 @@ def get_cropped_event(db_path='database.db'):
 
 
 def get_embeding_extracted_event(db_path='database.db'):
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -79,7 +80,7 @@ def get_embeding_extracted_event(db_path='database.db'):
 
 # Function to update the status of an event in deepface_jobs table
 def update_event_status(event_id, status, db_path='database.db'):
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -100,7 +101,7 @@ def delete_sorted_event(event_id, db_path='database.db'):
         db_path (str, optional): The path to the SQLite database file.
                                    Defaults to 'database.db'.
     """
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection(db_path)
     cursor = conn.cursor()
 
     # Check if the event exists and its status is 'sorted'

@@ -1,5 +1,11 @@
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
-from app.utils.helpers import validate_required_fields, is_logged_in, get_logged_in_user, get_event_image_id_via_image_path
+from app.utils.helpers import (
+    validate_required_fields, 
+    is_logged_in, 
+    get_logged_in_user, 
+    get_event_image_id_via_image_path,
+    rename_event_images
+)
 from app.services.event_service import (
     get_all_public_events,
     get_event_by_id,
@@ -60,7 +66,7 @@ def create_event_route():
         visibility = request.form.get('visibility', 'public')
         is_public = 1 if visibility == 'public' else 0
         event_images = request.files.getlist('event_images')  # Multiple images allowed
-
+        event_images = rename_event_images(event_images)
         # Validate required fields
         required_fields = ["name", "event_date", "location"]
         missing_fields = validate_required_fields(request.form, required_fields)

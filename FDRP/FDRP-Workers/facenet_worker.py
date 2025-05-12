@@ -4,6 +4,7 @@ from deepface import DeepFace
 # from tqdm import tqdm # tqdm might not be ideal for a background process log
 import logging
 import time # For the main loop example
+import tensorflow as tf
 
 # Configure logging (do this once at the start of your manager script)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(process)d - %(levelname)s - %(message)s')
@@ -11,8 +12,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(process)d - %(le
 # Define allowed extensions globally or pass them if needed
 ALLOWED_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff')
 DEFAULT_MODEL = 'Facenet512' # Using Facenet as requested
-
-def extract_face_embeddings(cropped_faces_dir, embeddings_output_dir, model_name=DEFAULT_MODEL):
+GPU = "no"
+def extract_face_embeddings(cropped_faces_dir, embeddings_output_dir, gpu=GPU, model_name=DEFAULT_MODEL):
     """
     Extracts face embeddings from images in cropped_faces_dir using a specified DeepFace model
     and saves them to a pickle file named '<model_name>_embeddings.pkl' in embeddings_output_dir.
@@ -28,6 +29,20 @@ def extract_face_embeddings(cropped_faces_dir, embeddings_output_dir, model_name
                     Returns None if input directory is invalid, no images are found,
                     no embeddings could be extracted, or saving fails.
     """
+    if (gpu == "no"):
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        print("Using CPU")
+    else:
+        # Enable GPU memory growth to avoid memory allocation errors
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            try:
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+                    print("Using GPU")
+            except RuntimeError as e:
+                print(e)
+
     logging.info(f"Starting embedding extraction for: '{cropped_faces_dir}'")
     logging.info(f"Using model: '{model_name}'. Output directory: '{embeddings_output_dir}'")
 
@@ -103,18 +118,28 @@ def extract_face_embeddings(cropped_faces_dir, embeddings_output_dir, model_name
     logging.info(f"Attempted processing {len(image_files)} files. Successfully extracted embeddings for {processed_count} files.")
 
     # --- Save Embeddings ---
-    if embeddings_dict: # Only save if we actually extracted at least one embedding
+    if embeddings_dict:  # Only proceed if we have new embeddings
         try:
+            # Load existing embeddings if the file exists
+            existing_embeddings = {}
+            if os.path.exists(output_file_path):
+                with open(output_file_path, 'rb') as f:
+                    existing_embeddings = pickle.load(f)
+                logging.info(f"Loaded {len(existing_embeddings)} existing embeddings from '{output_file_path}'")
+
+            # Merge old + new embeddings (new ones overwrite old if filenames clash)
+            merged_embeddings = {**existing_embeddings, **embeddings_dict}
+            
+            # Save the merged result
             with open(output_file_path, 'wb') as f:
-                pickle.dump(embeddings_dict, f)
-            logging.info(f"Successfully saved {len(embeddings_dict)} embeddings to '{output_file_path}'.")
-            return output_file_path # Return the path to the saved file
-        except IOError as e:
-            logging.error(f"Error saving embeddings pickle file to '{output_file_path}': {e}")
-            return None
-        except pickle.PicklingError as e:
-            logging.error(f"Error serializing embeddings dictionary for '{output_file_path}': {e}")
+                pickle.dump(merged_embeddings, f)
+            
+            logging.info(f"Saved {len(merged_embeddings)} embeddings ({len(embeddings_dict)} new) to '{output_file_path}'")
+            return output_file_path
+
+        except (IOError, pickle.PickleError) as e:  # Combines both IO and pickle errors
+            logging.error(f"Failed to save embeddings to '{output_file_path}': {e}")
             return None
     else:
-        logging.warning(f"No embeddings were successfully extracted from '{cropped_faces_dir}'. Output file '{output_file_path}' not created.")
-        return None # In
+        logging.warning(f"No new embeddings extracted. Existing file '{output_file_path}' was not modified.")
+        return None

@@ -1,5 +1,5 @@
 # retinaface_worker.py
-
+import gc
 print("Setting Up The Environment. Please Wait...")
 print("importing os, cv2, RetinaFace, tensorflow...")
 import os
@@ -7,17 +7,22 @@ import cv2
 from retinaface import RetinaFace
 import tensorflow as tf
 
-# Enable GPU memory growth to avoid memory allocation errors
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-    except RuntimeError as e:
-        print(e)
-
-def extract_faces(input_folder, output_folder):
+GPU = "yes"
+def extract_faces(input_folder, output_folder, gpu=GPU):
     print("\n\t\t\tYo YO Yo Yo Yo\n")
+    if (gpu == "no"):
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        print("Using CPU")
+    else:
+        # Enable GPU memory growth to avoid memory allocation errors
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            try:
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+                    print("Using GPU")
+            except RuntimeError as e:
+                print(e)
     # Output folders for faces detected and no face
     faces_detected_folder = os.path.join(output_folder, 'Face')
     no_face_folder = os.path.join(output_folder, 'No-Face')
@@ -354,9 +359,14 @@ def extract_faces(input_folder, output_folder):
 
     print("Images Have Been Successfully Filtered Out.")
     display_statistics(Total_Faces, Total_NoFaces)
+    print("Freeing Up GPU memory!")
+    tf.keras.backend.clear_session()
+    gc.collect()
+    output_path = os.path.join(output_folder, "faces.txt")
+    with open(output_path, "w") as f:
+        f.write("\n".join(Face_Array))
+    output_path = os.path.join(output_folder, "no_faces.txt")
+    with open(output_path, "w") as f:
+        f.write("\n".join(No_Face_Array))
 
-    # with open("small_faces_detected_list.txt", "w") as f:
-    #     f.write("\n".join(Face_Array))
-    # with open("small_no_faces_detected_list.txt", "w") as f:
-    #     f.write("\n".join(No_Face_Array))
     return

@@ -20,8 +20,8 @@ def check_and_process_unsorted_events(app_instance):
         fastapi_url = app_instance.config['FASTAPI_UPLOAD_URL']
         uploads_base_dir = app_instance.config['UPLOAD_FOLDER']
 
-        print("-" * 60)
-        print(f"SCHEDULER TASK: Checking for ONE unsorted event in DB -> {db_path}")
+        # print("-" * 60)
+        # print(f"SCHEDULER TASK: Checking for ONE unsorted event in DB -> {db_path}")
 
         conn = None
         cursor = None
@@ -35,7 +35,7 @@ def check_and_process_unsorted_events(app_instance):
             event_row = cursor.fetchone()
 
             if not event_row:
-                print("SCHEDULER TASK: No unsorted events found.")
+                # print("SCHEDULER TASK: No unsorted events found.")
                 return # Finally block will close conn/cursor
 
             event_id = event_row['id']
@@ -166,6 +166,6 @@ def check_and_process_unsorted_events(app_instance):
                 try: cursor.close()
                 except Exception as ce: print(f"Error closing cursor: {ce}")
             if conn:
-                try: conn.close(); print("SCHEDULER TASK: Database connection closed.")
+                try: conn.close(); #print("SCHEDULER TASK: Database connection closed.")
                 except Exception as ce: print(f"Error closing connection: {ce}")
             print("-" * 60)
