@@ -54,7 +54,8 @@ uvicorn main:app --reload
 ```
 pip install opencv-python deepface tf-keras
 python face_processing_manager.py
-```# How to run it?
+```
+# How to run it?
 
 1. First install 2 python virtual environments or just one via:
 
@@ -110,4 +111,9 @@ uvicorn main:app --reload
 ```
 pip install opencv-python deepface tf-keras
 python face_processing_manager.py
+```
+
+#### How to check end point of Identify:
+```
+curl -X POST http://localhost:8000/match-face/   -F "file=@/home/archmax/startup/FYP-Project/Identify/Front-Back-End/uploads/event_10/original_images/Imj81.JPG"   -F "user_id=1"   -F "event_id=11"
 ```
