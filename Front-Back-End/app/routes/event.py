@@ -158,6 +158,7 @@ def get_event_route(event_id):
             ]
 
             # Render the template with albums passed in context
+            print("Render_template Json:\n1) event = ",event,"\n2) is_owner: ",is_owner,"\n3) albums: ",album_list)
             return render_template('event_detail.html', event=event, is_owner=is_owner, albums=album_list)
         else:
             return "Event not found", 404
