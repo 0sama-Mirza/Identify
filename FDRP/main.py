@@ -3,7 +3,7 @@ import shutil
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 from typing import List
-from healpers.db_helper import insert_event_into_deepface_jobs, update_event_status
+from healpers.db_helper import insert_event_into_deepface_jobs, update_event_status, init_deepface_jobs_table
 from match_face import find_best_match
 
 # --- Configuration ---
@@ -11,7 +11,7 @@ UPLOAD_DIRECTORY = "received_images"
 OUTPUT_DIRECTORY = "user_data"
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
-
+init_deepface_jobs_table()
 # --- Initialize FastAPI app ---
 app = FastAPI(title="Image Upload API")
 

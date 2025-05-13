@@ -1,5 +1,11 @@
 import sqlite3
 
+# Function to get a database connection
+def get_db_connection(db_path='database.db', timeout=10):
+    conn = sqlite3.connect(db_path, timeout=timeout)
+    conn.execute("PRAGMA journal_mode=WAL;")
+    return conn
+
 def init_deepface_jobs_table(db_path='database.db'):
     conn = get_db_connection(db_path)
     conn.execute("PRAGMA journal_mode=WAL;")
@@ -12,12 +18,6 @@ def init_deepface_jobs_table(db_path='database.db'):
     """)
     conn.commit()
     conn.close()
-
-# Function to get a database connection
-def get_db_connection(db_path='database.db', timeout=10):
-    conn = sqlite3.connect(db_path, timeout=timeout)
-    conn.execute("PRAGMA journal_mode=WAL;")
-    return conn
 
 # Function to insert or update the deepface_jobs table
 def insert_event_into_deepface_jobs(event_id, db_path='database.db'):
