@@ -3,8 +3,10 @@ import shutil
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 from typing import List
+from fastapi.middleware.cors import CORSMiddleware
 from healpers.db_helper import insert_event_into_deepface_jobs, update_event_status, init_deepface_jobs_table
 from match_face import find_best_match
+import base64
 
 # --- Configuration ---
 UPLOAD_DIRECTORY = "received_images"
@@ -14,6 +16,14 @@ os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
 init_deepface_jobs_table()
 # --- Initialize FastAPI app ---
 app = FastAPI(title="Image Upload API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5000", "http://127.0.0.1:5000"],  # Match this with your Flask frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- Global Status ---
 app.state.status = "idle"  # Can be "idle" or "processing"
@@ -120,10 +130,19 @@ async def match_face_endpoint(
         traceback.print_exc()
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+    # Step 4: Read and encode the matched image
+    matched_image_path = f"Cropped_Events/event_{event_id}/Cropped_Faces_Align/{best_match_filename}"
+    try:
+        with open(matched_image_path, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode("utf-8")
+    except FileNotFoundError:
+        return JSONResponse(status_code=404, content={"error": "Matched image file not found."})
 
-    # Step 4: Return result (with fix)
+
+    # Step 5: Return result with Base64 image
     return {
-        "matched_cluster": int(cluster_id),  # Convert numpy.int64 to native int
+        "matched_cluster": int(cluster_id),
         "matched_image": best_match_filename,
-        "similarity_score": round(float(similarity), 4)  # Ensure float is native
+        "similarity_score": round(float(similarity), 4),
+        "image_base64": encoded_image  # <-- base64 string here
     }

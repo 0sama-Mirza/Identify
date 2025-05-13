@@ -158,8 +158,7 @@ def get_event_route(event_id):
             ]
 
             # Render the template with albums passed in context
-            print("Render_template Json:\n1) event = ",event,"\n2) is_owner: ",is_owner,"\n3) albums: ",album_list)
-            return render_template('event_detail.html', event=event, is_owner=is_owner, albums=album_list)
+            return render_template('event_detail.html', event=event, is_owner=is_owner, albums=album_list, user_id=user_id)
         else:
             return "Event not found", 404
     finally:
@@ -305,3 +304,42 @@ def select_banner_post(event_id):
     except Exception as e:
         print(f"[ERROR] Exception occurred during POST request processing: {str(e)}")
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+
+@event_bp.route('/confirm-identity', methods=['POST'])
+def confirm_identity_route():
+    """
+    Handles identity confirmation from popup.
+    Looks up album_id based on event_id and album_name.
+    """
+    data = request.json
+    album_name = data.get('album_name')
+    event_id = data.get('event_id')
+
+    if not album_name or not event_id:
+        return jsonify({'error': 'Missing album_name or event_id'}), 400
+
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            '''
+            SELECT id FROM albums
+            WHERE event_id = ? AND name = ?
+            ''',
+            (event_id, album_name)
+        )
+        album = cur.fetchone()
+
+        if not album:
+            return jsonify({'error': 'Album not found'}), 404
+
+        return jsonify({'album_id': album['id']}), 200
+
+    except Exception as e:
+        print(f"Error during album lookup: {e}")
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        conn.close()

@@ -4,164 +4,204 @@
 {% block content %}
 <div class="event-container">
 
-<div class="button-container">
-  <!-- Back Button -->
-  <a href="{{ url_for('event.get_user_events_route') }}" class="btn back-btn">← Back to My Events</a>
+<!-- Match result popup -->
+<div id="match-result-popup"
+     data-event-id="{{ event.id }}"
+     style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%);
+      background: white; border: 2px solid #333; padding: 20px; z-index: 9999; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
 
-  {% if is_owner %}
-  <!-- Change Banner Image Button -->
-  <a href="{{ url_for('event.get_select_banner_page', event_id=event.id) }}" id="change-banner-btn" class="btn change-banner-btn">
-    Change Banner Image
-  </a>
-  {% endif %}
+  <!-- Loading message -->
+  <div id="match-loading" style="display: none; text-align: center;">
+    <h2>⏳ Loading... Please wait</h2>
+  </div>
+
+  <!-- Match content -->
+  <div id="match-content" style="display: none;">
+    <h2>🎯 Match Found!</h2>
+    <p id="match-confidence-text"></p>
+    <p id="matched-cluster-text"></p>
+    <img id="matched-image-preview"
+         src=""
+         alt="Matched face"
+         style="max-width: 200px; max-height: 200px; display: block; margin: 10px 0;">
+    <button id="yes-btn" class="btn">✅ Yes, it’s me!</button>
+    <button id="no-btn" class="btn">❌ No, not me</button>
+  </div>
 </div>
 
 
-<!-- Event Banner Container -->
-<div class="banner-container">
-  {% if event.banner_image %}
-  <img class="event-banner" src="{{ url_for('uploads.serve_event_image', event_id=event.id, filename=event.banner_image) }}" alt="{{ event.name }} Banner">
-{% else %}
-  <img class="event-banner" src="https://via.placeholder.com/600x300?text=No+Banner+Image" alt="No Banner">
-{% endif %}
-  
-  <!-- Event Header -->
-  <div class="event-header">
-    <h1>{{ event.name }}</h1>
-  </div>
-
-  {% if is_owner %}
-  <div class="action-buttons">
-    <!-- Edit Button -->
-    <button id="edit-toggle-btn" class="btn edit-btn">Edit Event</button>
-    
-    <!-- Upload Images Button -->
-    <button id="upload-images-btn" class="btn upload-images-btn">📤Upload Images</button>
-    <!-- Hidden File Input -->
-    <form id="upload-images-form" method="POST" action="/uploads/event/{{ event.id }}/upload" enctype="multipart/form-data">
-      <input type="file" id="event_images" name="event_images" multiple accept="image/*" style="display: none;">
-    </form>
-    
-  </div>
-  {% endif %}
 
 
-  <!-- View Mode -->
-  <div id="view-mode" class="event-details">
-    <div class="event-info"><strong>Public:</strong> {{ "Yes" if event.is_public else "No" }}</div>
-    <div class="event-info"><strong>Date/Time:</strong> {{ event.event_date }}</div>
-    <div class="event-info"><strong>Location:</strong> {{ event.location }}</div>
-    <div class="event-info"><strong>Category:</strong> {{ event.category }}</div>
-    {% if event.num_attendees is not none %}
-      <div class="event-info"><strong>Attendees:</strong> {{ event.num_attendees }}</div>
+  <div class="button-container">
+    <!-- Back Button -->
+    <a href="{{ url_for('event.get_user_events_route') }}" class="btn back-btn">← Back to My Events</a>
+
+    {% if is_owner %}
+    <!-- Change Banner Image Button -->
+    <a href="{{ url_for('event.get_select_banner_page', event_id=event.id) }}" id="change-banner-btn" class="btn change-banner-btn">
+      Change Banner Image
+    </a>
     {% endif %}
-    <div class="event-info"><strong>Created At:</strong> {{ event.created_at }}</div>
-    <div class="event-info"><strong>Created By:</strong> {{ event.created_by }}</div>
-    <div class="description">
-      <strong>Description:</strong>
-      <p>{{ event.description }}</p>
-      {% if is_owner %}
-      <button class="delete-event-button" data-event-id="{{ event.id }}">Delete Event</button>
-      {% endif %}
-    </div>
-  </div>
 
-
-  {% if is_owner %}
-  <!-- Edit Mode -->
-  <form id="edit-mode" style="display: none;">
-    <div class="event-details">
-      <div class="event-info">
-        <label for="event-name">Event Name:</label>
-        <input type="text" id="event-name" name="name" value="{{ event.name }}">
-      </div>
-
-      <div class="event-info">
-        <label for="event-public">Public:</label>
-        <select id="event-public" name="is_public">
-          <option value="1" {% if event.is_public %}selected{% endif %}>Yes</option>
-          <option value="0" {% if not event.is_public %}selected{% endif %}>No</option>
-        </select>
-      </div>
-
-      <div class="event-info">
-        <label for="event-date">Date/Time:</label>
-        <input type="datetime-local" id="event-date" name="event_date" value="{{ event.event_date }}">
-      </div>
-
-      <div class="event-info">
-        <label for="event-location">Location:</label>
-        <input type="text" id="event-location" name="location" value="{{ event.location }}">
-      </div>
-
-      <div class="event-info">
-        <label for="event-category">Category:</label>
-        <input type="text" id="event-category" name="category" value="{{ event.category }}">
-      </div>
-
-      {% if event.num_attendees is not none %}
-      <div class="event-info">
-        <label for="event-attendees">Attendees:</label>
-        <input type="number" id="event-attendees" name="num_attendees" value="{{ event.num_attendees }}">
-      </div>
-      {% endif %}
-
-      <div class="description">
-        <label for="event-description">Description:</label>
-        <textarea id="event-description" name="description">{{ event.description }}</textarea>
-      </div>
-    </div>
-
-    <div class="edit-buttons">
-      <button type="button" class="btn save-btn" id="save-changes">Save Changes</button>
-      <button type="button" class="btn cancel-btn" id="cancel-edit-btn">Cancel</button>
-    </div>
+  <form id="match-face-form"
+        action="http://localhost:8000/match-face/"
+        method="POST"
+        enctype="multipart/form-data">
+    <input type="hidden" name="user_id" value="{{ user_id }}">
+    <input type="hidden" name="event_id" value="{{ event.id }}">
+    <input type="file" name="file" required>
+    <button type="submit" class="btn back-btn">👀 Identify</button>
   </form>
-  {% endif %}
-  <!-- Photos & Albums -->
-  <div class="photos-section">
-    <h3 class="photos-header">
-      <span class="photos-title">Photos & Albums</span>
-      {% if is_owner %}
-        <button id="add-album-btn" class="btn add-album-btn">+</button>
-      {% endif %}
-    </h3>
-    <div class="button-container">
-      <!-- Dynamic Album Buttons -->
-      {% if albums %}
-        {% for album in albums %}
-          <a href="{{ url_for('album.get_album_route', event_id=event.id, album_id=album.id) }}" class="btn">{{ album.name }}</a>
-        {% endfor %}
-      {% else %}
-        <p class="no-albums-message">No Albums Found</p>
-      {% endif %}
-    </div>
+
+
   </div>
-  {% if is_owner %}
-    <!-- Modal for Creating New Album -->
-    <div id="album-modal" class="modal" style="display: none;">
-      <div class="modal-content">
-        <h3>Create New Album</h3>
-        <form id="create-album-form">
-          <div class="form-group">
-            <label for="album-name">Album Name:</label>
-            <input type="text" id="album-name" name="name" required>
-          </div>
-          <div class="form-group">
-            <label for="album-visibility">Visibility:</label>
-            <select id="album-visibility" name="visibility" required>
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-            </select>
-          </div>
-          <button type="button" id="create-album-submit" class="btn">Create Album</button>
-          <button type="button" id="close-modal-btn" class="btn">Cancel</button>
-        </form>
+
+
+  <!-- Event Banner Container -->
+  <div class="banner-container">
+    {% if event.banner_image %}
+    <img class="event-banner" src="{{ url_for('uploads.serve_event_image', event_id=event.id, filename=event.banner_image) }}" alt="{{ event.name }} Banner">
+  {% else %}
+    <img class="event-banner" src="https://via.placeholder.com/600x300?text=No+Banner+Image" alt="No Banner">
+  {% endif %}
+    
+    <!-- Event Header -->
+    <div class="event-header">
+      <h1>{{ event.name }}</h1>
+    </div>
+
+    {% if is_owner %}
+    <div class="action-buttons">
+      <!-- Edit Button -->
+      <button id="edit-toggle-btn" class="btn edit-btn">Edit Event</button>
+      
+      <!-- Upload Images Button -->
+      <button id="upload-images-btn" class="btn upload-images-btn">📤Upload Images</button>
+      <!-- Hidden File Input -->
+      <form id="upload-images-form" method="POST" action="/uploads/event/{{ event.id }}/upload" enctype="multipart/form-data">
+        <input type="file" id="event_images" name="event_images" multiple accept="image/*" style="display: none;">
+      </form>
+      
+    </div>
+    {% endif %}
+
+
+    <!-- View Mode -->
+    <div id="view-mode" class="event-details">
+      <div class="event-info"><strong>Public:</strong> {{ "Yes" if event.is_public else "No" }}</div>
+      <div class="event-info"><strong>Date/Time:</strong> {{ event.event_date }}</div>
+      <div class="event-info"><strong>Location:</strong> {{ event.location }}</div>
+      <div class="event-info"><strong>Category:</strong> {{ event.category }}</div>
+      {% if event.num_attendees is not none %}
+        <div class="event-info"><strong>Attendees:</strong> {{ event.num_attendees }}</div>
+      {% endif %}
+      <div class="event-info"><strong>Created At:</strong> {{ event.created_at }}</div>
+      <div class="event-info"><strong>Created By:</strong> {{ event.created_by }}</div>
+      <div class="description">
+        <strong>Description:</strong>
+        <p>{{ event.description }}</p>
+        {% if is_owner %}
+        <button class="delete-event-button" data-event-id="{{ event.id }}">Delete Event</button>
+        {% endif %}
       </div>
     </div>
-  {% endif %}
-</div>
 
+
+    {% if is_owner %}
+    <!-- Edit Mode -->
+    <form id="edit-mode" style="display: none;">
+      <div class="event-details">
+        <div class="event-info">
+          <label for="event-name">Event Name:</label>
+          <input type="text" id="event-name" name="name" value="{{ event.name }}">
+        </div>
+
+        <div class="event-info">
+          <label for="event-public">Public:</label>
+          <select id="event-public" name="is_public">
+            <option value="1" {% if event.is_public %}selected{% endif %}>Yes</option>
+            <option value="0" {% if not event.is_public %}selected{% endif %}>No</option>
+          </select>
+        </div>
+
+        <div class="event-info">
+          <label for="event-date">Date/Time:</label>
+          <input type="datetime-local" id="event-date" name="event_date" value="{{ event.event_date }}">
+        </div>
+
+        <div class="event-info">
+          <label for="event-location">Location:</label>
+          <input type="text" id="event-location" name="location" value="{{ event.location }}">
+        </div>
+
+        <div class="event-info">
+          <label for="event-category">Category:</label>
+          <input type="text" id="event-category" name="category" value="{{ event.category }}">
+        </div>
+
+        {% if event.num_attendees is not none %}
+        <div class="event-info">
+          <label for="event-attendees">Attendees:</label>
+          <input type="number" id="event-attendees" name="num_attendees" value="{{ event.num_attendees }}">
+        </div>
+        {% endif %}
+
+        <div class="description">
+          <label for="event-description">Description:</label>
+          <textarea id="event-description" name="description">{{ event.description }}</textarea>
+        </div>
+      </div>
+
+      <div class="edit-buttons">
+        <button type="button" class="btn save-btn" id="save-changes">Save Changes</button>
+        <button type="button" class="btn cancel-btn" id="cancel-edit-btn">Cancel</button>
+      </div>
+    </form>
+    {% endif %}
+    <!-- Photos & Albums -->
+    <div class="photos-section">
+      <h3 class="photos-header">
+        <span class="photos-title">Photos & Albums</span>
+        {% if is_owner %}
+          <button id="add-album-btn" class="btn add-album-btn">+</button>
+        {% endif %}
+      </h3>
+      <div class="button-container">
+        <!-- Dynamic Album Buttons -->
+        {% if albums %}
+          {% for album in albums %}
+            <a href="{{ url_for('album.get_album_route', event_id=event.id, album_id=album.id) }}" class="btn">{{ album.name }}</a>
+          {% endfor %}
+        {% else %}
+          <p class="no-albums-message">No Albums Found</p>
+        {% endif %}
+      </div>
+    </div>
+    {% if is_owner %}
+      <!-- Modal for Creating New Album -->
+      <div id="album-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <h3>Create New Album</h3>
+          <form id="create-album-form">
+            <div class="form-group">
+              <label for="album-name">Album Name:</label>
+              <input type="text" id="album-name" name="name" required>
+            </div>
+            <div class="form-group">
+              <label for="album-visibility">Visibility:</label>
+              <select id="album-visibility" name="visibility" required>
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+            <button type="button" id="create-album-submit" class="btn">Create Album</button>
+            <button type="button" id="close-modal-btn" class="btn">Cancel</button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
 {% if is_owner %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -303,30 +343,119 @@
               name: document.getElementById("album-name").value,
               visibility: document.getElementById("album-visibility").value,
               event_id: {{ event.id }} // Pass the current event ID
-          };
+      };
   
-          try {
-              const response = await fetch(`/albums/create`, {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify(albumData)
-              });
+      try {
+          const response = await fetch(`/albums/create`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+              body: JSON.stringify(albumData)
+            });
   
-              if (response.ok) {
-                  alert("Album created successfully!");
-                  window.location.reload(); // Reload the page to show the new album
-              } else {
-                  const result = await response.json();
-                  alert(`Error: ${result.error}`);
-              }
+            if (response.ok) {
+              alert("Album created successfully!");
+              window.location.reload(); // Reload the page to show the new album
+            } else {
+                const result = await response.json();
+                alert(`Error: ${result.error}`);
+            }
           } catch (error) {
               console.error("Failed to create album:", error);
               alert("An error occurred while creating the album.");
           }
       });
+
+// Identify!!!!!!
+  const popup = document.getElementById("match-result-popup");
+  const loadingDiv = document.getElementById("match-loading");
+  const contentDiv = document.getElementById("match-content");
+
+  // Submit face match form
+  document.getElementById("match-face-form").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+
+    // Show popup with loading
+    popup.style.display = "block";
+    loadingDiv.style.display = "block";
+    contentDiv.style.display = "none";
+
+    try {
+      const response = await fetch("http://localhost:8000/match-face/", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.matched_cluster !== undefined && data.image_base64) {
+        // Fill in the popup
+        document.getElementById("match-confidence-text").textContent =
+          `We are ${Math.round(data.similarity_score * 100)}% sure it's you!`;
+        document.getElementById("matched-cluster-text").textContent =
+          `Your Album ID (Cluster) is ${data.matched_cluster}`;
+        document.getElementById("matched-image-preview").src =
+          `data:image/jpeg;base64,${data.image_base64}`;
+
+        // Switch from loading to content
+        loadingDiv.style.display = "none";
+        contentDiv.style.display = "block";
+      } else {
+        alert("No match found or error occurred.");
+        popup.style.display = "none";
+      }
+    } catch (err) {
+      console.error("Error matching face:", err);
+      alert("Something went wrong.");
+      popup.style.display = "none";
+    }
   });
+
+  // Yes button logic
+  document.getElementById("yes-btn").addEventListener("click", function () {
+    const rawText = document.getElementById("matched-cluster-text").innerText;
+    const albumName = rawText.match(/\d+$/)?.[0];
+    const eventId = popup.dataset.eventId;
+
+    if (!albumName || !eventId) {
+      alert("Missing album name or event ID");
+      return;
+    }
+
+    fetch("/events/confirm-identity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        album_name: albumName.trim(),
+        event_id: parseInt(eventId)
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.album_id) {
+        window.location.href = `/albums/${data.album_id}`;
+      } else {
+        alert("Album not found: " + data.error);
+      }
+    })
+    .catch(error => {
+      console.error("Error confirming identity:", error);
+      alert("Something went wrong.");
+    });
+  });
+
+  // No button logic
+  document.getElementById("no-btn").addEventListener("click", () => {
+    popup.style.display = "none";
+  });
+
+  });
+
+
   </script>
 {% endif %}  
 
