@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(process)d - %(le
 # Define allowed extensions globally or pass them if needed
 ALLOWED_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff')
 DEFAULT_MODEL = 'Facenet512' # Using Facenet as requested
-GPU = "no"
+GPU = "yes"
 def extract_face_embeddings(cropped_faces_dir, embeddings_output_dir, gpu=GPU, model_name=DEFAULT_MODEL):
     """
     Extracts face embeddings from images in cropped_faces_dir using a specified DeepFace model

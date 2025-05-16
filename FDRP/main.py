@@ -117,8 +117,15 @@ async def match_face_endpoint(
     user_folder = f"user_data/{user_id}"
     os.makedirs(user_folder, exist_ok=True)
 
-    # Step 2: Save the uploaded image with original filename
-    image_path = os.path.join(user_folder, file.filename)
+    # ✅ Clean the folder before proceeding
+    for existing_file in os.listdir(user_folder):
+        file_path = os.path.join(user_folder, existing_file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    # Step 2: Save the uploaded image with a custom name: u-ID<user_id>-selfie.jpg
+    image_filename = f"u-ID{user_id}-selfie.jpg"
+    image_path = os.path.join(user_folder, image_filename)
     with open(image_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
