@@ -36,7 +36,10 @@ def main_processing_loop(db_path='database.db', check_interval=5):
                 print("=====================payload Data=====================:\n", payload)
                 try:
                     headers = {'Content-Type': 'application/json'}
-                    response = requests.post("http://127.0.0.1:5000/albums/process_album_data", headers=headers, json=payload)
+                    # For Disturbutive Computing
+                    response = requests.post("http://192.168.100.9:5000/albums/process_album_data", headers=headers, json=payload)
+                    # For The Same Machine
+                    # response = requests.post("http://127.0.0.1:5000/albums/process_album_data", headers=headers, json=payload)
                     response.raise_for_status()
                     print("Data sent to Flask endpoint successfully.")
                     print("Response:", response.json())
