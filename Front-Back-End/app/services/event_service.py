@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 import random
 import sqlite3
-
+import traceback
 
 def get_all_public_events():
     """
@@ -378,15 +378,15 @@ def update_event(event_id, user_id, updates, conn):
 
 def delete_event(event_id, user_id):
     """
-    Deletes an event, but only if the user owns it.
-    Also deletes all related data (event_images, albums, album_images).
+    Deletes an event and all related data (albums, album_images, event_images),
+    but only if the authenticated user owns the event.
     """
     conn = get_db_connection()
     cur = conn.cursor()
 
     try:
-        with conn:  # Wrap all operations in a transaction
-            # Check event ownership
+        with conn:  # Transaction begins
+            # Step 1: Validate event ownership
             print(f"[DEBUG] Checking ownership for event ID {event_id}")
             cur.execute("SELECT user_id FROM events WHERE id = ?;", (event_id,))
             event = cur.fetchone()
@@ -394,43 +394,63 @@ def delete_event(event_id, user_id):
             if event is None:
                 print(f"[ERROR] Event ID {event_id} not found")
                 return {"error": "Event not found"}, 404
-            if event['user_id'] != user_id:
+
+            if event["user_id"] != user_id:
                 print(f"[ERROR] Unauthorized deletion attempt by user {user_id} for event ID {event_id}")
                 return {"error": "Unauthorized to delete this event"}, 403
 
-            # Cascade delete related data
-            print(f"[DEBUG] Deleting related data for event ID {event_id}")
+            # Step 2: Nullify banner_image FK to prevent deletion errors
+            print(f"[DEBUG] Nullifying banner_image for event ID {event_id}")
+            cur.execute("UPDATE events SET banner_image = NULL WHERE id = ?;", (event_id,))
 
-            # Delete album_images linked to this event
+            # Step 3: Delete album_images that reference event_images for this event
+            print(f"[DEBUG] Deleting album_images referencing event_images for event ID {event_id}")
             cur.execute('''
-                DELETE FROM album_images 
-                WHERE album_id IN (SELECT id FROM albums WHERE event_id = ?);
+                DELETE FROM album_images
+                WHERE event_image_id IN (
+                    SELECT id FROM event_images WHERE event_id = ?
+                );
             ''', (event_id,))
 
-            # Delete albums linked to this event
+            # Step 4: Delete album_images by album_id for this event
+            print(f"[DEBUG] Deleting album_images by album_id for event ID {event_id}")
+            cur.execute('''
+                DELETE FROM album_images
+                WHERE album_id IN (
+                    SELECT id FROM albums WHERE event_id = ?
+                );
+            ''', (event_id,))
+
+            # Step 5: Delete albums
+            print(f"[DEBUG] Deleting albums for event ID {event_id}")
             cur.execute("DELETE FROM albums WHERE event_id = ?;", (event_id,))
 
-            # Delete event_images linked to this event
+            # Step 6: Delete event_images
+            print(f"[DEBUG] Deleting event_images for event ID {event_id}")
             cur.execute("DELETE FROM event_images WHERE event_id = ?;", (event_id,))
 
-            # Finally, delete the event itself
+            # Step 7: Delete the event itself
             print(f"[DEBUG] Deleting event ID {event_id}")
             cur.execute("DELETE FROM events WHERE id = ?;", (event_id,))
 
-            print(f"[INFO] Event ID {event_id} and its related data deleted successfully")
+            # Step 8: Remove associated folders from filesystem
+            print(f"[INFO] Deleting associated folder for event ID {event_id}")
             delete_event_folder(event_id)
+
+            print(f"[INFO] Event ID {event_id} and all related data deleted successfully")
             return {"success": True}, 200
 
     except sqlite3.IntegrityError as e:
-        print(f"[ERROR] Database integrity error: {str(e)}")
+        print(f"[ERROR] Database integrity error: {e}")
         return {"error": "Database integrity error occurred"}, 500
+
     except Exception as e:
-        print(f"[ERROR] Unexpected error: {str(e)}")
+        print(f"[ERROR] Unexpected error: {e}")
+        traceback.print_exc()
         return {"error": f"An unexpected error occurred: {str(e)}"}, 500
     finally:
         conn.close()
         print(f"[DEBUG] Database connection closed")
-
 
 ALLOWED_EVENT_STATUSES = {'sorted', 'unsorted', 'processing'}
 

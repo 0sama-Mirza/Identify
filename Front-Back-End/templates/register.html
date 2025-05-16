@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='register/css/style.css') }}">
+{% endblock %}
+
 {% block content %}
 <h2>Register</h2>
 
@@ -7,7 +14,7 @@
 <p style="color: red;">{{ error }}</p>
 {% endif %}
 
-<!-- Display success message if it exists (though success would ideally redirect to login) -->
+<!-- Display success message if it exists -->
 {% if success %}
 <p style="color: green;">{{ success }}</p>
 {% endif %}
@@ -22,4 +29,8 @@
     <button type="submit">Register</button>
 </form>
 <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>.</p>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='register/js/script.js') }}"></script>
 {% endblock %}

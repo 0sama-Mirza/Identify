@@ -1,0 +1,136 @@
+/* Container Styling */
+.events-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fdfdfd;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+.events-container h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 2.4rem;
+  font-family: 'Arial', sans-serif;
+  text-transform: uppercase;
+}
+
+/* Card Grid Layout */
+.events-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Card Styling */
+.event-item {
+  background-color: #ffffff;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.event-item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Banner Styling */
+.event-banner {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background-color: #f0f0f0; /* Fallback background if no image */
+  border-bottom: 1px solid #ddd;
+}
+
+/* Event Details */
+.event-details {
+  padding: 20px;
+  text-align: left;
+  font-family: 'Verdana', sans-serif;
+}
+.event-details strong {
+  font-size: 1.5rem;
+  color: #333;
+  display: block;
+  margin-bottom: 8px;
+}
+.event-details p {
+  margin: 8px 0;
+  color: #555;
+  font-size: 1rem;
+}
+
+/* Action Buttons */
+.event-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  padding: 12px 0;
+  border-top: 1px solid #ddd;
+  background-color: #fafafa;
+}
+.event-actions a {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+  background-color: #007BFF;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+.event-actions a:hover {
+  background-color: #0056b3;
+}
+
+/* Delete Button with Icon (Specific Styling) */
+.event-actions .delete-button {
+  background-color: #ff4d4d; /* Bright red for visibility */
+  color: #fff;
+  border: none; /* Remove border */
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+.event-actions .delete-button:hover {
+  background-color: #d11a2a; /* Darker red on hover */
+  color: #fff; /* Ensure white text remains */
+}
+.event-actions .delete-button .icon {
+  font-size: 1.2rem;
+}
+
+/* No Events Message */
+.no-events {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  margin-top: 30px;
+  font-family: 'Georgia', serif;
+}
+.no-events a {
+  color: #007BFF;
+  text-decoration: none;
+  font-weight: bold;
+}
+.no-events a:hover {
+  text-decoration: underline;
+}

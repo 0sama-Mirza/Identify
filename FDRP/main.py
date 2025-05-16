@@ -115,13 +115,24 @@ async def match_face_endpoint(
 ):
     # Step 1: Create user directory
     user_folder = f"user_data/{user_id}"
-    os.makedirs(user_folder, exist_ok=True)
+    # --- Step 1: Create or Clear User Directory ---
+    try:
+        os.makedirs(user_folder, exist_ok=True)  # Create if it doesn't exist
 
-    # ✅ Clean the folder before proceeding
-    for existing_file in os.listdir(user_folder):
-        file_path = os.path.join(user_folder, existing_file)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+        # Clear existing files and directories
+        for item in os.listdir(user_folder):
+            item_path = os.path.join(user_folder, item)
+            if os.path.isfile(item_path) or os.path.islink(item_path):
+                os.remove(item_path)  # Remove files and symbolic links
+            elif os.path.isdir(item_path):
+                shutil.rmtree(item_path)  # Remove directories and their contents
+        print(f"Successfully cleared contents of: {user_folder}")  # Debugging
+    except Exception as e:
+        print(f"Error during directory cleanup: {e}")
+        traceback.print_exc()  # Log the full traceback
+        return JSONResponse(
+            status_code=500, content={"error": f"Error clearing user directory: {e}"}
+        )
 
     # Step 2: Save the uploaded image with a custom name: u-ID<user_id>-selfie.jpg
     image_filename = f"u-ID{user_id}-selfie.jpg"
@@ -132,10 +143,13 @@ async def match_face_endpoint(
     # Step 3: Run matching
     try:
         cluster_id, best_match_filename, similarity = find_best_match(user_id, event_id)
+        if cluster_id is None:
+            raise ValueError("No matching cluster found.")
     except Exception as e:
         import traceback
         traceback.print_exc()
         return JSONResponse(status_code=500, content={"error": str(e)})
+
 
     # Step 4: Read and encode the matched image
     matched_image_path = f"Cropped_Events/event_{event_id}/Cropped_Faces_Align/{best_match_filename}"
