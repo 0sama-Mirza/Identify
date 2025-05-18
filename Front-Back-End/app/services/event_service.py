@@ -94,6 +94,7 @@ def get_event_by_id(event_id, conn):
                 e.num_attendees,
                 e.is_public,
                 e.created_at,
+                e.status,
                 u.username AS created_by, 
                 ei.image_path AS banner_image_path  -- Resolve image path from event_images
             FROM events e
@@ -119,6 +120,7 @@ def get_event_by_id(event_id, conn):
             "is_public": event["is_public"],
             "created_at": event["created_at"],
             "created_by": event["created_by"],
+            "status": event["status"],
             "banner_image": event["banner_image_path"],  # Return resolved image path
         } if event else None
 

@@ -135,7 +135,7 @@ def get_event_route(event_id):
         if event:
             is_owner = event["user_id"] == user_id  # Compare event's user_id with logged-in user_id
             print(f"Is Owner: {is_owner}")
-
+            print("========Testing Out FAM=======\nevent status: ",event,"\n")
             # Fetch albums associated with the event, filtering out "All Photos"
             cur = conn.cursor()
             cur.execute('''

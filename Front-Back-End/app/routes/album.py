@@ -236,7 +236,12 @@ def process_album_data():
                         "SELECT id FROM album_images WHERE album_id = ? AND event_image_id = ?",
                         (album_id, event_image_id),
                     )
-                    if cursor.fetchone() is None:
+                    already_in_album = cursor.fetchone()
+                    cursor.execute(
+                        "UPDATE event_images SET status = ? WHERE id = ?",
+                        ('sorted', event_image_id)
+                    )
+                    if already_in_album is None:
                         cursor.execute(
                             "INSERT INTO album_images (album_id, event_image_id, added_at) VALUES (?, ?, ?)",
                             (album_id, event_image_id, datetime.now().isoformat()),
@@ -261,6 +266,16 @@ def process_album_data():
             return jsonify({'error': f'Error processing album {album_name}: {e}'}), 500
         finally:
             pass
-
-    conn.close()
+    try:
+        cursor.execute(
+            "UPDATE events SET status = ? WHERE id = ?",
+            ('sorted', event_id)
+        )
+        conn.commit()
+    except sqlite3.Error as e:
+        conn.rollback()
+        return jsonify({'error': f'Failed to update event status: {e}'}), 500
+    finally:
+        conn.close()
+        
     return jsonify(results), 200
