@@ -1,71 +1,81 @@
-/* static/dashboard/css/style.css */
-
-/* General Layout */
+/* ------------------ General Layout ------------------ */
 .dashboard-container {
     max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
 }
+
 h1, h2 {
     color: #333;
 }
+
 .welcome-message {
     font-size: 1.2rem;
     color: #555;
     margin-bottom: 20px;
 }
-/* Quick Actions */
+
+
+/* ------------------ Quick Actions ------------------ */
 .quick-actions {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 15px;
     margin-bottom: 30px;
 }
+
 .action-button {
     display: inline-block;
-    padding: 10px 20px;
+    flex: 1 1 45%;
+    max-width: 200px;
+    width: 100%;
+    padding: 10px;
     margin: 10px 5px;
     color: #fff;
-    background-color: #007BFF;
+    background-color: #2e7d32;
     border: none;
     border-radius: 5px;
     font-weight: bold;
-    text-decoration: none;
     text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
+
 .action-button:hover {
-    background-color: #0056b3;
+    background-color: #2e7d32;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.delete-button {
-    background-color: #ff4d4d; /* Red */
-}
-
-.delete-button:hover {
-    background-color: #ff0000;
-}
-
 .view-btn {
-    background-color: #ffc107; /* Yellow */
+    background-color: #ffc107;
 }
-
 .view-btn:hover {
     background-color: #e0a800;
 }
 
-/* Events Section */
+.delete-button {
+    background-color: #ff4d4d;
+}
+.delete-button:hover {
+    background-color: #ff0000;
+}
+
+
+/* ------------------ Events Section ------------------ */
 .events-section {
     margin-top: 40px;
     text-align: left;
 }
+
 .events-section h2 {
-    color: #007BFF;
-    border-bottom: 2px solid #007BFF;
+    color: #2e7d32;
+    border-bottom: 2px solid #2e7d32;
     display: inline-block;
     padding-bottom: 5px;
 }
+
 .events-list {
     display: flex;
     flex-wrap: wrap;
@@ -74,47 +84,123 @@ h1, h2 {
     padding: 0;
     margin: 20px 0;
 }
+
 .event-item {
     display: flex;
     flex-direction: row;
     align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
     padding: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: #f9f9f9;
-    width: 100%;
+    transition: box-shadow 0.3s ease;
 }
+
 .event-item:hover {
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .event-banner-container {
     flex: 1;
     text-align: center;
     margin-right: 15px;
 }
+
 .event-banner {
     width: 100%;
     max-width: 300px;
     height: auto;
-    border-radius: 5px;
     border: 1px solid #ddd;
+    border-radius: 5px;
     object-fit: cover;
 }
+
 .event-details {
     flex: 2;
     padding-left: 10px;
 }
+
 .event-details strong {
     font-size: 1.5rem;
-    color: #007BFF;
+    color: #2e7d32;
 }
+
 .event-details p {
     margin: 5px 0;
     color: #555;
 }
+
 .no-events {
     color: #777;
     font-style: italic;
     margin-top: 20px;
 }
-  
+
+
+/* ------------------ Event Actions ------------------ */
+.event-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+
+/* ------------------ Responsive Enhancements ------------------ */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 15px;
+    }
+
+    .quick-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .action-button {
+        max-width: 300px;
+    }
+
+    .event-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .event-banner-container {
+        margin: 0 0 15px 0;
+    }
+
+    .event-details {
+        padding-left: 0;
+    }
+
+    .event-details strong {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .event-actions {
+        flex-direction: column;
+    }
+
+    .action-button {
+        flex: 1 1 100%;
+        width: 100%;
+        margin: 5px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-button {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+    }
+
+    .event-details p {
+        font-size: 0.9rem;
+    }
+}

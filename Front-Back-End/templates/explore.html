@@ -6,33 +6,46 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Page Heading -->
-  <h2>Explore Public Events</h2>
+  <section class="explore-section">
+    <h2 class="section-title">Explore Public Events</h2>
 
-  <!-- Explore Container -->
-  <div class="explore-container">
-    {% if events %}
-      {% for event in events %}
-      <div class="card">
-      <!-- Event Banner -->
-      {% if event.banner_image %}
-        <img class="event-banner" src="{{ url_for('uploads.serve_event_image', event_id=event.id, filename=event.banner_image) }}" alt="{{ event.name }} Banner">
+    <div class="explore-container">
+      {% if events %}
+        {% for event in events %}
+          <div class="event-card">
+            <!-- Event Banner -->
+            <div class="event-image-wrapper">
+              {% if event.banner_image %}
+                <img 
+                  class="event-banner" 
+                  src="{{ url_for('uploads.serve_event_image', event_id=event.id, filename=event.banner_image) }}" 
+                  alt="{{ event.name }} Banner"
+                >
+              {% else %}
+                <img 
+                  class="event-banner" 
+                  src="https://via.placeholder.com/600x300?text=No+Banner+Image" 
+                  alt="No Banner"
+                >
+              {% endif %}
+            </div>
+
+            <!-- Event Content -->
+            <div class="event-details">
+              <h3 class="event-title">{{ event.name }}</h3>
+              <p><strong>Category:</strong> {{ event.category }}</p>
+              <p><strong>Date:</strong> {{ event.event_date }}</p>
+              <p><strong>Location:</strong> {{ event.location }}</p>
+              <p><strong>Created by:</strong> {{ event.created_by }}</p>
+              <a class="view-details-btn" href="{{ url_for('event.get_event_route', event_id=event.id) }}">
+                View Details
+              </a>
+            </div>
+          </div>
+        {% endfor %}
       {% else %}
-        <img class="event-banner" src="https://via.placeholder.com/600x300?text=No+Banner+Image" alt="No Banner">
+        <p class="no-events">No public events found. Check back later!</p>
       {% endif %}
-
-        <div class="card-content">
-          <h3>{{ event.name }}</h3>
-          <p><strong>Category:</strong> {{ event.category }}</p>
-          <p><strong>Date:</strong> {{ event.event_date }}</p>
-          <p><strong>Location:</strong> {{ event.location }}</p>
-          <p><strong>Created by:</strong> {{ event.created_by }}</p>
-          <a href="{{ url_for('event.get_event_route', event_id=event.id) }}">View Details</a>
-        </div>
-      </div>
-      {% endfor %}
-    {% else %}
-      <p class="no-events">No public events found. Check back later!</p>
-    {% endif %}
-  </div>
+    </div>
+  </section>
 {% endblock %}

@@ -1,69 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Event Manager{% endblock %}</title>
-  <style>
-    /* Global reset and basic styling */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      color: #333;
-      padding: 20px;
-    }
-    /* Navbar (shared across pages) */
-    .navbar {
-      background-color: #007BFF;
-      color: #fff;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: 5px;
-      margin-bottom: 20px;
-    }
-    .navbar a {
-      color: #fff;
-      text-decoration: none;
-      font-weight: bold;
-      margin: 0 10px;
-    }
-    .navbar a:hover {
-      text-decoration: underline;
-    }
-    /* Main container */
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-    }
-    .flash-message {
-      color: red;
-      margin-bottom: 10px;
-    }
-  </style>
+
+  <!-- Link to external stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='base/css/style.css') }}" />
+
   {% block styles %}{% endblock %}
 </head>
 <body>
-  <!-- Shared Navbar -->
+  <!-- Sticky Navbar -->
   <div class="navbar">
-    <div>
+    <!-- Hamburger (added via JS) -->
+
+    <!-- Left navigation links -->
+    <div class="nav-left">
       <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
       <a href="{{ url_for('main.explore') }}">Explore</a>
       <a href="{{ url_for('event.get_user_events_route') }}">My Events</a>
     </div>
-    <div>
+
+    <!-- Right navigation links -->
+    <div class="nav-right">
       {% if session.username %}
-        Signed in as {{ session.username }} |
+        <span>Signed in as {{ session.username }}</span>
         <a href="{{ url_for('event.create_event_route') }}">Create Event</a>
         <a href="{{ url_for('auth.logout_get') }}">Logout</a>
       {% else %}
@@ -73,18 +35,21 @@
     </div>
   </div>
 
-  <!-- Main content -->
+  <!-- Main content area -->
   <div class="container">
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          {% for msg in messages %}
-            <p class="flash-message">{{ msg }}</p>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-      {% block content %}{% endblock %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for msg in messages %}
+          <p class="flash-message">{{ msg }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
   </div>
 
+  <!-- External JS (includes hamburger toggle) -->
+  <script src="{{ url_for('static', filename='base/js/script.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

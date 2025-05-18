@@ -1,0 +1,112 @@
+/* Base Reset and Theme */
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f1fff1; /* Light green background */
+  color: #1b4d1b;
+}
+
+/* Flash messages */
+.flash-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-left: 5px solid #28a745;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 80px auto 20px; /* Leave space for sticky nav */
+  padding: 0 15px;
+}
+
+/* Navbar styles */
+.navbar {
+  background-color: #2e8b57;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Nav sections */
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Pipe-separated links */
+.nav-left a:not(:last-child)::after {
+  content: "|";
+  color: #bdf5bd;
+  margin-left: 10px;
+}
+
+/* Nav links */
+.navbar a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.navbar a:hover {
+  text-decoration: underline;
+}
+
+/* Hamburger button */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+}
+
+.hamburger span {
+  height: 3px;
+  width: 25px;
+  background-color: white;
+  border-radius: 2px;
+}
+
+/* Mobile Navigation */
+@media screen and (max-width: 768px) {
+  .hamburger {
+    display: flex;
+    margin-left: auto;
+  }
+
+  .nav-left,
+  .nav-right {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    background-color: #2e8b57;
+    margin-top: 10px;
+  }
+
+  .navbar.active .nav-left,
+  .navbar.active .nav-right {
+    display: flex;
+  }
+
+  .nav-left a,
+  .nav-right a {
+    padding: 10px 15px;
+    border-top: 1px solid #4caf50;
+    width: 100%;
+  }
+
+  .nav-left a:not(:last-child)::after {
+    content: "";
+  }
+}

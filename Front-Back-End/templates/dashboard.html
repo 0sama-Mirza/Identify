@@ -32,8 +32,10 @@
           <p><strong>Category:</strong> {{ event.category }}</p>
           <p><strong>Public:</strong> {{ "Yes" if event.is_public else "No" }}</p>
           <p>{{ event.description }}</p>
-          <a href="{{ url_for('event.get_event_route', event_id=event.id) }}" class="action-button view-btn">👁️ View Details</a>
-          <a href="#" data-event-id="{{ event.id }}" class="action-button delete-button">🗑️ Delete Event</a>
+          <div class="event-actions">
+            <a href="{{ url_for('event.get_event_route', event_id=event.id) }}" class="action-button view-btn">👁️ View Details</a>
+            <a href="#" data-event-id="{{ event.id }}" class="action-button delete-button">🗑️ Delete Event</a>
+          </div>
         </div>
       </li>
       {% endfor %}
