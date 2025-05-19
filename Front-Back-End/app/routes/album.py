@@ -49,21 +49,32 @@ def create_album_route():
 @album_bp.route('/<int:album_id>', methods=['GET'])
 def get_album_route(album_id):
     """
-    Fetch details and images of a specific album and render the album.html page.
+    Fetch details and images of a specific album and render the album.html page
+    only if the user has permission.
     """
     # Use the service function
     response, status_code = get_album(album_id)
 
     if status_code != 200:
-        # Handle errors gracefully
         return jsonify(response), status_code
-    is_owner = response["album"]["event_user_id"] == session.get('user_id')
-    print("==============================\n\n\n\t\t\tResponse: ",response,"\n\n===========")
-    print("==============================\n\n\n\t\t\tsession.get(\'user_id\'): ",session.get('user_id'),"\n\n===========")
-    # print(f"\n========================================================\n\n\n\t\t\tresponse[\"album\"][\"user_id\"]:", response["user_id"],"\n========================================================")
+
+    album = response["album"]
+    user_id = session.get('user_id')
+    is_event_owner = album["event_user_id"] == user_id
+    is_album_owner = album.get("album_user_id") == user_id
+    is_owner = is_event_owner or is_album_owner
+
+    print("==============================\n\n\n\t\t\tResponse: ", response, "\n\n===========")
+    print("==============================\n\n\n\t\t\tsession.get('user_id'): ", user_id, "\n\n===========")
     print(f"\n========================================================\n\n\n\t\t\tIs Owner: {is_owner}\n========================================================")
-    # Render the album.html template with album details and images
-    return render_template('album.html', album=response["album"], images=response["images"], is_owner=is_owner)
+
+    # Check access permissions
+    if album["visibility"] == "private":
+        if not is_event_owner and not is_album_owner:
+            return jsonify({"error": "You do not have access to this private album."}), 403
+
+    # Render the album page
+    return render_template('album.html', album=album, images=response["images"], is_owner=is_owner)
 
 
 @album_bp.route('/add-images', methods=['GET', 'POST'])
@@ -279,3 +290,29 @@ def process_album_data():
         conn.close()
         
     return jsonify(results), 200
+
+
+@album_bp.route('/<int:album_id>/claim', methods=['POST'])
+def claim_album(album_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    db = get_db()
+    cursor = db.cursor()
+
+    try:
+        # Check if album exists
+        cursor.execute("SELECT id FROM albums WHERE id = ?", (album_id,))
+        if cursor.fetchone() is None:
+            return jsonify({"error": "Album not found"}), 404
+
+        # Claim the album
+        cursor.execute("UPDATE albums SET user_id = ? WHERE id = ?", (user_id, album_id))
+        db.commit()
+
+        return redirect(url_for('album_bp.get_album_route', album_id=album_id))
+    except Exception as e:
+        db.rollback()
+        print("Error claiming album:", e)
+        return jsonify({"error": "Failed to claim album"}), 500

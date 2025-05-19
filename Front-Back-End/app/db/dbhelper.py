@@ -77,7 +77,7 @@ def init_db(app):
                 CREATE TABLE IF NOT EXISTS albums (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     event_id INTEGER NOT NULL,               -- Links to the associated event
-                    user_id INTEGER,                         -- Links to the owner user (can be NULL if no user owns it)
+                    user_id INTEGER,                         -- The owner of the event (not the creator of the event)
                     name TEXT NOT NULL,                      -- Album name
                     visibility TEXT NOT NULL CHECK (visibility IN ('public', 'private')), -- Restricts allowed values
                     created_at TEXT NOT NULL,

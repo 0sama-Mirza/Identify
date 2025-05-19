@@ -77,7 +77,7 @@ def get_album(album_id):
     try:
         # Fetch album details, including event_id and event's user_id
         query_album = '''
-        SELECT a.id AS album_id, a.name AS album_name, a.visibility, a.created_at, 
+        SELECT a.id AS album_id, a.name AS album_name, a.visibility, a.created_at, a.user_id AS album_user_id,
                e.user_id AS event_user_id, e.name AS event_name, e.id AS event_id
         FROM albums a
         JOIN events e ON a.event_id = e.id
@@ -106,6 +106,7 @@ def get_album(album_id):
                 "name": album["album_name"],
                 "visibility": album["visibility"],
                 "created_at": album["created_at"],
+                "album_user_id": album["album_user_id"],
                 "event_user_id": album["event_user_id"],
                 "event_name": album["event_name"],
                 "event_id": album["event_id"]  # Include event_id for dynamic image paths

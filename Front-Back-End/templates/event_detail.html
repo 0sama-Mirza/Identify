@@ -428,37 +428,64 @@
   });
 
   // Yes button logic
-  document.getElementById("yes-btn").addEventListener("click", function () {
-    const rawText = document.getElementById("matched-cluster-text").innerText;
-    const albumName = rawText.match(/\d+$/)?.[0];
-    const eventId = popup.dataset.eventId;
+document.getElementById("yes-btn").addEventListener("click", async function () {
+  const rawText = document.getElementById("matched-cluster-text").innerText;
+  const albumName = rawText.match(/\d+$/)?.[0];
+  const eventId = popup.dataset.eventId;
 
-    if (!albumName || !eventId) {
-      alert("Missing album name or event ID");
-      return;
-    }
+  if (!albumName || !eventId) {
+    alert("Missing album name or event ID");
+    return;
+  }
 
-    fetch("/events/confirm-identity", {
+  try {
+    // Step 1: Confirm identity and get album_id
+    const confirmResponse = await fetch("/events/confirm-identity", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
         album_name: albumName.trim(),
         event_id: parseInt(eventId)
       })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.album_id) {
-        window.location.href = `/albums/${data.album_id}`;
-      } else {
-        alert("Album not found: " + data.error);
-      }
-    })
-    .catch(error => {
-      console.error("Error confirming identity:", error);
-      alert("Something went wrong.");
     });
-  });
+
+    const confirmData = await confirmResponse.json();
+
+    if (!confirmResponse.ok) {
+      throw new Error(confirmData.error || "Failed to confirm identity.");
+    }
+
+    const albumId = confirmData.album_id;
+
+    if (!albumId) {
+      alert("Album not found.");
+      return;
+    }
+
+    // Step 2: Claim album
+    const claimResponse = await fetch(`/albums/${albumId}/claim`, {
+      method: "POST"
+    });
+
+    if (claimResponse.redirected) {
+      // Server sends a redirect, we follow it
+      window.location.href = claimResponse.url;
+    } else if (claimResponse.ok) {
+      // Fallback redirect if redirect is not sent by server
+      window.location.href = `/albums/${albumId}`;
+    } else {
+      const error = await claimResponse.json();
+      alert("Failed to claim album: " + (error.error || "Unknown error"));
+    }
+
+  } catch (error) {
+    console.error("Error claiming album:", error);
+    alert("Something went wrong.");
+  }
+});
+
 
   // No button logic
   document.getElementById("no-btn").addEventListener("click", () => {
