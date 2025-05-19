@@ -217,3 +217,42 @@ def get_time_difference_string(start_str, end_str):
     except Exception as e:
         print(f"Error in get_time_difference_string: {e}")
         return None
+    
+
+def get_all_users():
+    """
+    Returns a list of all users (id and username) ordered by username.
+    Must be used within a Flask request context.
+    """
+    try:
+        conn = get_db_connection()  # gets g.db
+        cur = conn.cursor()
+        query = '''
+        SELECT id, username
+        FROM users
+        ORDER BY username;
+        '''
+        cur.execute(query)
+        users = cur.fetchall()
+        return [dict(user) for user in users]
+
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch users: {str(e)}")
+        return []
+    
+def get_username_by_id(user_id):
+    """
+    Returns the username for a given user_id.
+    Returns None if the user is not found or an error occurs.
+    Must be called within a Flask request context.
+    """
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        query = "SELECT username FROM users WHERE id = ?;"
+        cur.execute(query, (user_id,))
+        row = cur.fetchone()
+        return row["username"] if row else None
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch username: {e}")
+        return None

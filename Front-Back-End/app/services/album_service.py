@@ -70,12 +70,12 @@ def get_album(album_id):
     Fetches details and images of a specific album, including the associated event_id 
     and event's user_id.
     """
-    conn = get_db_connection()
-    conn.row_factory = sqlite3.Row  # Allow dictionary-style row access
-    cur = conn.cursor()
-
     try:
-        # Fetch album details, including event_id and event's user_id
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        # Fetch album details
         query_album = '''
         SELECT a.id AS album_id, a.name AS album_name, a.visibility, a.created_at, a.user_id AS album_user_id,
                e.user_id AS event_user_id, e.name AS event_name, e.id AS event_id
@@ -89,7 +89,7 @@ def get_album(album_id):
         if album is None:
             return {"error": "Album not found"}, 404
 
-        # Fetch associated images by joining album_images with event_images
+        # Fetch images
         query_images = '''
         SELECT ei.id AS image_id, ei.image_path
         FROM album_images ai
@@ -99,7 +99,6 @@ def get_album(album_id):
         cur.execute(query_images, (album_id,))
         images = [{"id": row["image_id"], "path": row["image_path"]} for row in cur.fetchall()]
 
-        # Return the album and its images as a structured response
         return {
             "album": {
                 "id": album["album_id"],
@@ -109,16 +108,13 @@ def get_album(album_id):
                 "album_user_id": album["album_user_id"],
                 "event_user_id": album["event_user_id"],
                 "event_name": album["event_name"],
-                "event_id": album["event_id"]  # Include event_id for dynamic image paths
+                "event_id": album["event_id"]
             },
             "images": images
         }, 200
-    except Exception as e:
-        # Handle unexpected errors gracefully
-        return {"error": f"An error occurred: {str(e)}"}, 500
-    finally:
-        conn.close()
 
+    except Exception as e:
+        return {"error": f"An error occurred: {str(e)}"}, 500
 
 
 

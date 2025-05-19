@@ -3,7 +3,7 @@ import numpy as np  # Make sure numpy is imported if you're using np.int64
 import re
 import sqlite3  # Import the sqlite3 module
 from datetime import datetime  # Import the datetime module
-
+from app.utils.helpers import get_all_users, get_username_by_id
 
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from app.services.album_service import (
@@ -52,29 +52,36 @@ def get_album_route(album_id):
     Fetch details and images of a specific album and render the album.html page
     only if the user has permission.
     """
-    # Use the service function
+    # Call the service function to get album details and images
     response, status_code = get_album(album_id)
 
+    # Return error if album not found or any other error occurs
     if status_code != 200:
         return jsonify(response), status_code
 
     album = response["album"]
     user_id = session.get('user_id')
+
+    # Determine ownership
     is_event_owner = album["event_user_id"] == user_id
     is_album_owner = album.get("album_user_id") == user_id
     is_owner = is_event_owner or is_album_owner
 
+    # Debug prints (optional, remove in production)
     print("==============================\n\n\n\t\t\tResponse: ", response, "\n\n===========")
     print("==============================\n\n\n\t\t\tsession.get('user_id'): ", user_id, "\n\n===========")
     print(f"\n========================================================\n\n\n\t\t\tIs Owner: {is_owner}\n========================================================")
 
-    # Check access permissions
+    # Check access permissions for private albums
     if album["visibility"] == "private":
-        if not is_event_owner and not is_album_owner:
+        if not is_owner:
             return jsonify({"error": "You do not have access to this private album."}), 403
 
-    # Render the album page
-    return render_template('album.html', album=album, images=response["images"], is_owner=is_owner)
+    users = get_all_users()
+    print("All Users:", users)
+    username = get_username_by_id(album.get("album_user_id"))
+    # Render album page with album details, images, ownership info, and users list
+    return render_template('album.html', album=album, images=response["images"], is_owner=is_owner, users=users, is_event_owner=is_event_owner, is_album_owner=is_album_owner, username= username)
 
 
 @album_bp.route('/add-images', methods=['GET', 'POST'])
@@ -323,3 +330,58 @@ def claim_album(album_id):
     finally:
         conn.close()
 
+
+
+@album_bp.route('/<int:album_id>/edit', methods=['POST'])
+def edit_album_route(album_id):
+    """
+    Edit album owner (user_id) and visibility.
+    """
+    if 'user_id' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+
+    new_user_id = request.form.get('user_id')
+    new_visibility = request.form.get('visibility')
+
+    if new_visibility not in ('public', 'private'):
+        return jsonify({"error": "Invalid visibility option"}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        current_user_id = session['user_id']
+
+        # Fetch album owner and event owner in one query
+        cursor.execute("""
+            SELECT a.user_id AS album_user_id, e.user_id AS event_user_id
+            FROM albums a
+            JOIN events e ON a.event_id = e.id
+            WHERE a.id = ?
+        """, (album_id,))
+        owners = cursor.fetchone()
+
+        if owners is None:
+            return jsonify({"error": "Album not found"}), 404
+
+        is_album_owner = owners['album_user_id'] == current_user_id
+        is_event_owner = owners['event_user_id'] == current_user_id
+
+        if not (is_album_owner or is_event_owner):
+            return jsonify({"error": "Unauthorized"}), 403
+
+        cursor.execute("""
+            UPDATE albums
+            SET user_id = ?, visibility = ?
+            WHERE id = ?
+        """, (new_user_id, new_visibility, album_id))
+        conn.commit()
+
+        return redirect(url_for('album.get_album_route', album_id=album_id))
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": f"Failed to update album: {str(e)}"}), 500
+
+    finally:
+        conn.close()
