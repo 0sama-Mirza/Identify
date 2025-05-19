@@ -37,35 +37,46 @@
 
 
 
-  <div class="button-container">
-    <!-- Back Button -->
-    <a href="{{ url_for('event.get_user_events_route') }}" class="btn back-btn">← Back to My Events</a>
+<!-- Top Action Buttons -->
+<div class="top-button-container">
+  <a href="{{ url_for('event.get_user_events_route') }}" class="btn back-btn">
+    ← Back to My Events
+  </a>
 
-    {% if is_owner %}
-    <!-- Change Banner Image Button -->
-    <a href="{{ url_for('event.get_select_banner_page', event_id=event.id) }}" id="change-banner-btn" class="btn change-banner-btn">
-      Change Banner Image
-    </a>
-    {% endif %}
-
-
-  {% if event.status == 'sorted' %}
-    <form id="match-face-form"
-          action="http://localhost:8000/match-face/"
-          method="POST"
-          enctype="multipart/form-data">
-      <input type="hidden" name="user_id" value="{{ user_id }}">
-      <input type="hidden" name="event_id" value="{{ event.id }}">
-      <input type="file" name="file" required>
-      <button type="submit" class="btn back-btn">👀 Identify</button>
-    </form>
-  {% else %}
-    <p>Status: {{ event.status }}</p>
+  {% if is_owner %}
+  <a href="{{ url_for('event.get_select_banner_page', event_id=event.id) }}" class="btn change-banner-btn">
+    🖼️ Change Banner Image
+  </a>
   {% endif %}
+</div>
 
-
-
-  </div>
+<!-- Bottom Section: Face Match or Album Access -->
+<div class="bottom-section">
+  {% if event.status == 'sorted' %}
+    {% if user_album_info %}
+      <!-- User already has an album -->
+      <a href="/albums/{{ user_album_info.user_album_id }}">
+        <button class="btn go-btn">
+          📁 My Album: {{ user_album_info.user_album_name }}
+        </button>
+      </a>
+    {% else %}
+      <!-- No album yet, show face match form -->
+      <form id="match-face-form"
+            action="http://localhost:8000/match-face/"
+            method="POST"
+            enctype="multipart/form-data">
+        <input type="hidden" name="user_id" value="{{ user_id }}">
+        <input type="hidden" name="event_id" value="{{ event.id }}">
+        <input type="file" name="file" required>
+        <button type="submit" class="btn identify-btn">👀 Identify</button>
+      </form>
+    {% endif %}
+  {% else %}
+    <!-- Event is not sorted -->
+    <p class="status-text">Status: {{ event.status }}</p>
+  {% endif %}
+</div>
 
 
   <!-- Event Banner Container -->

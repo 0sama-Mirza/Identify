@@ -194,6 +194,69 @@
     margin-top: 20px;
     flex-wrap: wrap;
   }
+
+.top-button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.bottom-section {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.bottom-section form,
+.bottom-section a {
+  display: inline-block;
+  margin-top: 12px;
+}
+
+.status-text {
+  font-weight: 500;
+  font-size: 1.1em;
+  color: #666;
+}
+
+/* Optional Modern Button Styling */
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.back-btn {
+  background-color: #e2e8f0;
+  color: #1a202c;
+}
+
+.change-banner-btn {
+  background-color: #4c51bf;
+  color: white;
+}
+
+.go-btn {
+  background-color: #38a169;
+  color: white;
+}
+
+.identify-btn {
+  background-color: #3182ce;
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+
   .btn {
     display: inline-block;
     background-color: #007BFF;

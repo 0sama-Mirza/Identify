@@ -295,24 +295,25 @@ def process_album_data():
 @album_bp.route('/<int:album_id>/claim', methods=['POST'])
 def claim_album(album_id):
     user_id = session.get("user_id")
+
     if not user_id:
         return jsonify({"error": "Unauthorized"}), 401
 
-    db = get_db()
-    cursor = db.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
     try:
-        # Check if album exists
-        cursor.execute("SELECT id FROM albums WHERE id = ?", (album_id,))
-        if cursor.fetchone() is None:
-            return jsonify({"error": "Album not found"}), 404
+        # Update the album's user_id
+        cursor.execute("""
+            UPDATE albums SET user_id = ? WHERE id = ?
+        """, (user_id, album_id))
+        conn.commit()
 
-        # Claim the album
-        cursor.execute("UPDATE albums SET user_id = ? WHERE id = ?", (user_id, album_id))
-        db.commit()
-
-        return redirect(url_for('album_bp.get_album_route', album_id=album_id))
+        return redirect(url_for('album.get_album_route', album_id=album_id))  # Ensure route name matches
     except Exception as e:
-        db.rollback()
+        conn.rollback()
         print("Error claiming album:", e)
         return jsonify({"error": "Failed to claim album"}), 500
+    finally:
+        conn.close()
+

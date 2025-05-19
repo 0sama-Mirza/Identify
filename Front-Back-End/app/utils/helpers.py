@@ -152,3 +152,38 @@ def rename_new_upload_event_images(file_list, event_id, db_path='database.db'):
         renamed_files.append(renamed_file)
 
     return renamed_files
+
+def get_user_album_for_event(user_id, event_id):
+    """
+    Checks if a user already has an album for a specific event.
+    Returns a dict with 'user_album_id' and 'user_album_name' if found, otherwise None.
+    """
+    try:
+        with get_db_connection() as conn:
+            cur = conn.cursor()
+
+            query = '''
+            SELECT id, name
+            FROM albums
+            WHERE user_id = ? AND event_id = ?
+            LIMIT 1;
+            '''
+            cur.execute(query, (user_id, event_id))
+            result = cur.fetchone()
+
+            if result:
+                user_album_id = result["id"]
+                user_album_name = result["name"]
+                print(f"[DEBUG] Found album for user {user_id} in event {event_id}: {user_album_name} (ID: {user_album_id})")
+                return {
+                    "user_album_id": user_album_id,
+                    "user_album_name": user_album_name
+                }
+            else:
+                print(f"[INFO] No album found for user {user_id} in event {event_id}")
+                return None
+
+    except Exception as e:
+        print(f"[ERROR] Exception occurred while checking user album: {str(e)}")
+        return None
+
