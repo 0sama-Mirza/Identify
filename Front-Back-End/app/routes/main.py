@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for
-from app.services.event_service import get_user_events, get_all_public_events
+from app.services.event_service import get_all_public_events, get_events_where_user_is_in_album
 
 # Define the main blueprint
 main_bp = Blueprint('main', __name__)
@@ -24,7 +24,7 @@ def dashboard():
     user_id = session['user_id']
 
     # Fetch events for the user (use your service function)
-    response, status_code = get_user_events(user_id)
+    response, status_code = get_events_where_user_is_in_album(user_id)
 
     if status_code == 200:  # Success
         events = response.get('events', [])

@@ -16,7 +16,7 @@
   </div>
 
   <div class="events-section">
-    <h2>Upcoming Events</h2>
+    <h2>Events You Participated In</h2>
     {% if events %}
     <ul class="events-list">
       {% for event in events %}
@@ -41,7 +41,7 @@
       {% endfor %}
     </ul>
     {% else %}
-      <p class="no-events">You have no upcoming events. Start by creating one!</p>
+      <p class="no-events">You have not participated in any event. Start by creating one!</p>
     {% endif %}
   </div>
 </div>

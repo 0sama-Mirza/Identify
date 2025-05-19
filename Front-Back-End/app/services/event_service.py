@@ -182,6 +182,53 @@ def get_user_events(user_id):
         return {"error": f"Unable to fetch events. Error: {str(e)}"}, 500
 
 
+def get_events_where_user_is_in_album(user_id):
+    """
+    Fetches events where the given user is part of an album (i.e., albums owned by the user).
+    """
+    print("========Event_service get_events_where_user_is_in_album()========\n")
+    try:
+        with get_db_connection() as conn:
+            query = '''
+            SELECT DISTINCT e.id, e.name, e.description, e.category, e.event_date, e.location,
+                            e.num_attendees, e.is_public, e.created_at, e.processing_start_time, e.processing_end_time,
+                            ei.image_path AS banner_image_path
+            FROM events e
+            JOIN albums a ON e.id = a.event_id
+            LEFT JOIN event_images ei ON e.banner_image = ei.id
+            WHERE a.user_id = ?
+            ORDER BY e.event_date;
+            '''
+
+            cur = conn.cursor()
+            cur.execute(query, (user_id,))
+            rows = cur.fetchall()
+
+            print("ROWS:", rows, "\n")
+            events = [
+                {
+                    "id": row["id"],
+                    "name": row["name"],
+                    "description": row["description"],
+                    "category": row["category"],
+                    "event_date": row["event_date"],
+                    "location": row["location"],
+                    "num_attendees": row["num_attendees"],
+                    "is_public": row["is_public"],
+                    "banner_image": row["banner_image_path"],
+                    "created_at": row["created_at"],
+                    "processing_start_time": row["processing_start_time"],
+                    "processing_end_time": row["processing_end_time"]
+                }
+                for row in rows
+            ]
+
+            return {"events": events}, 200
+
+    except Exception as e:
+        print(f"Error fetching events where user is in album: {e}")
+        return {"error": f"Unable to fetch events. Error: {str(e)}"}, 500
+
 
 def create_event(user_id, name, description, category, event_date, location, num_attendees, is_public, event_images=None):
     """
