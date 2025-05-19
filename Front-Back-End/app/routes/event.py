@@ -5,7 +5,8 @@ from app.utils.helpers import (
     get_logged_in_user, 
     get_event_image_id_via_image_path,
     rename_event_images,
-    get_user_album_for_event
+    get_user_album_for_event,
+    get_time_difference_string
 )
 from app.services.event_service import (
     get_all_public_events,
@@ -159,7 +160,12 @@ def get_event_route(event_id):
             ]
             user_album_info = get_user_album_for_event(user_id, event_id) if user_id else None
             # Render the template with albums passed in context
-            return render_template('event_detail.html', event=event, is_owner=is_owner, albums=album_list, user_id=user_id, user_album_info=user_album_info)
+            processing_duration = get_time_difference_string(
+                event["processing_start_time"],
+                event["processing_end_time"]
+            )
+            print("🕒 Duration:", processing_duration)
+            return render_template('event_detail.html', event=event, is_owner=is_owner, albums=album_list, user_id=user_id, user_album_info=user_album_info, processing_duration=processing_duration)
         else:
             return "Event not found", 404
     finally:

@@ -278,10 +278,16 @@ def process_album_data():
         finally:
             pass
     try:
+        end_processing_time = datetime.now().isoformat()  # Get current timestamp in ISO format
         cursor.execute(
-            "UPDATE events SET status = ? WHERE id = ?",
-            ('sorted', event_id)
+            "UPDATE events SET status = ?, processing_end_time = ? WHERE id = ?",
+            ('sorted', end_processing_time, event_id)
         )
+        cursor.execute(
+            "UPDATE albums SET visibility = ? WHERE event_id = ? AND name = ?",
+            ('public', event_id, 'No Face')
+        )
+
         conn.commit()
     except sqlite3.Error as e:
         conn.rollback()

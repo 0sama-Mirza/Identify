@@ -45,6 +45,7 @@ pip install Flask Flask-Session Flask-APScheduler requests numpy gunicorn
 python run.py # for development
 
 gunicorn -w 4 -b 0.0.0.0:5000 run:app
+waitress-serve --host=0.0.0.0 --port=5000 run:app // For Windows pip install waitress
 python scheduler.py
 ```
 ## FDRP (Face Detection and Recognition Pipeline)

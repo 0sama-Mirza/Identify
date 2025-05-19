@@ -42,7 +42,9 @@
   <a href="{{ url_for('event.get_user_events_route') }}" class="btn back-btn">
     ← Back to My Events
   </a>
-
+    {% if event.status == 'sorted' %}
+      <p class="status-text">🕒 Processing Duration: {{ processing_duration }}</p>
+    {% endif %}
   {% if is_owner %}
   <a href="{{ url_for('event.get_select_banner_page', event_id=event.id) }}" class="btn change-banner-btn">
     🖼️ Change Banner Image
@@ -119,9 +121,11 @@
       {% endif %}
       <div class="event-info"><strong>Created At:</strong> {{ event.created_at }}</div>
       <div class="event-info"><strong>Created By:</strong> {{ event.created_by }}</div>
+      <div class="event-info"><strong>Processing Start Time:</strong> {{ event.processing_start_time }}</div>
+      <div class="event-info"><strong>Processing End Time:</strong> {{ event.processing_end_time }}</div>
       <div class="description">
         <strong>Description:</strong>
-        <p>{{ event.description }}</p>
+        <p>     {{ event.description }}</p>
         {% if is_owner %}
         <button class="delete-event-button" data-event-id="{{ event.id }}">Delete Event</button>
         {% endif %}

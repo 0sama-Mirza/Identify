@@ -187,3 +187,33 @@ def get_user_album_for_event(user_id, event_id):
         print(f"[ERROR] Exception occurred while checking user album: {str(e)}")
         return None
 
+def parse_datetime(dt_str):
+    """Try parsing datetime string with two possible formats."""
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S.%f"):
+        try:
+            return datetime.strptime(dt_str, fmt)
+        except ValueError:
+            continue
+    raise ValueError(f"Unknown datetime format: {dt_str}")
+
+def get_time_difference_string(start_str, end_str):
+    """
+    Calculate difference between start_str and end_str
+    and return as 'Xh Ym Zs' string.
+    """
+    if not start_str or not end_str:
+        return None
+    try:
+        start = parse_datetime(start_str)
+        end = parse_datetime(end_str)
+
+        delta = end - start
+        total_seconds = int(delta.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+
+        return f"{hours}h {minutes}m {seconds}s"
+    except Exception as e:
+        print(f"Error in get_time_difference_string: {e}")
+        return None

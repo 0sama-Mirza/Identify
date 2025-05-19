@@ -3,7 +3,7 @@ import os
 import requests
 import sqlite3
 import traceback # For detailed error logging
-
+from datetime import datetime
 # ====> 1. IMPORT allowed_file HELPER <====
 from app.utils.helpers import allowed_file
 # =======================================
@@ -141,7 +141,15 @@ def check_and_process_unsorted_events(app_instance):
             if api_call_successful:
                 print(f"SCHEDULER TASK: Updating status to 'processing' for event {event_id}")
                 try:
-                    cursor.execute("UPDATE events SET status = 'processing' WHERE id = ?", (event_id,))
+                    current_processing_time = datetime.now().isoformat()
+                    cursor.execute("""
+                        UPDATE events 
+                        SET 
+                            status = 'processing', 
+                            processing_start_time = ?, 
+                            processing_end_time = 'Not yet!'
+                        WHERE id = ?
+                    """, (current_processing_time, event_id,))
                     cursor.execute("""
                         UPDATE event_images 
                         SET status = 'processing' 

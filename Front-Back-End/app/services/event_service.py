@@ -94,6 +94,8 @@ def get_event_by_id(event_id, conn):
                 e.num_attendees,
                 e.is_public,
                 e.created_at,
+                e.processing_start_time,
+                e.processing_end_time,
                 e.status,
                 u.username AS created_by, 
                 ei.image_path AS banner_image_path  -- Resolve image path from event_images
@@ -119,6 +121,8 @@ def get_event_by_id(event_id, conn):
             "num_attendees": event["num_attendees"],
             "is_public": event["is_public"],
             "created_at": event["created_at"],
+            "processing_start_time": event["processing_start_time"],
+            "processing_end_time": event["processing_end_time"],
             "created_by": event["created_by"],
             "status": event["status"],
             "banner_image": event["banner_image_path"],  # Return resolved image path
@@ -133,12 +137,13 @@ def get_user_events(user_id):
     """
     Fetches events created by the user from the database, including the banner image path.
     """
+    print("========Event_service get_user_events()========\n")
     try:
         # Establish database connection
         with get_db_connection() as conn:
             query = '''
             SELECT e.id, e.name, e.description, e.category, e.event_date, e.location, 
-                   e.num_attendees, e.is_public, e.created_at, 
+                   e.num_attendees, e.is_public, e.created_at, e.processing_start_time, e.processing_end_time,
                    ei.image_path AS banner_image_path
             FROM events e
             LEFT JOIN event_images ei ON e.banner_image = ei.id  -- Join with event_images using event_image_id
@@ -150,6 +155,8 @@ def get_user_events(user_id):
             rows = cur.fetchall()
 
             # Convert rows to list of dictionaries
+            print("========Event_service get_user_events()========\n")
+            print("ROWS: ",rows,"\n")
             events = [
                 {
                     "id": row["id"],
@@ -161,7 +168,9 @@ def get_user_events(user_id):
                     "num_attendees": row["num_attendees"],
                     "is_public": row["is_public"],
                     "banner_image": row["banner_image_path"],  # Path to the banner image
-                    "created_at": row["created_at"]
+                    "created_at": row["created_at"],
+                    "processing_start_time": row["processing_start_time"],
+                    "processing_end_time": row["processing_end_time"]
                 }
                 for row in rows
             ]
@@ -193,11 +202,13 @@ def create_event(user_id, name, description, category, event_date, location, num
             cur = conn.cursor()
 
             query = '''
-            INSERT INTO events (user_id, name, description, category, event_date, location, num_attendees, is_public, banner_image, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            INSERT INTO events (user_id, name, description, category, event_date, location, num_attendees, is_public, banner_image, created_at, processing_start_time, processing_end_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             '''
             created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Get the current timestamp
-            cur.execute(query, (user_id, name, description, category, event_date, location, num_attendees, is_public, banner_image, created_at))
+            processing_start_time = 'Queued'
+            processing_end_time = ':)'
+            cur.execute(query, (user_id, name, description, category, event_date, location, num_attendees, is_public, banner_image, created_at, processing_start_time, processing_end_time))
             conn.commit()
 
             # Retrieve the event ID
