@@ -1,5 +1,5 @@
 import sqlite3
-
+from datetime import datetime
 # Function to get a database connection
 def get_db_connection(db_path='database.db', timeout=10):
     conn = sqlite3.connect(db_path, timeout=timeout)
@@ -13,7 +13,10 @@ def init_deepface_jobs_table(db_path='database.db'):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS deepface_jobs (
             event_id INTEGER PRIMARY KEY,
-            status TEXT DEFAULT 'unsorted'
+            status TEXT DEFAULT 'unsorted',
+            retinaface_time TEXT,
+            facenet_time TEXT,
+            hdbscan_time TEXT
         )
     """)
     conn.commit()
@@ -127,3 +130,55 @@ def delete_sorted_event(event_id, db_path='database.db'):
         print(f"Event ID '{event_id}' not found in the deepface_jobs table.")
 
     conn.close()
+
+def update_retinaface_time(event_id, timestamp, db_path='database.db'):
+    conn = get_db_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE deepface_jobs
+        SET retinaface_time = ?
+        WHERE event_id = ?
+    """, (timestamp, event_id))
+    conn.commit()
+    conn.close()
+
+
+def update_facenet_time(event_id, timestamp, db_path='database.db'):
+    conn = get_db_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE deepface_jobs
+        SET facenet_time = ?
+        WHERE event_id = ?
+    """, (timestamp, event_id))
+    conn.commit()
+    conn.close()
+
+
+def update_hdbscan_time(event_id, timestamp, db_path='database.db'):
+    conn = get_db_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE deepface_jobs
+        SET hdbscan_time = ?
+        WHERE event_id = ?
+    """, (timestamp, event_id))
+    conn.commit()
+    conn.close()
+
+def get_duration_string(start_time_str, end_time_str):
+    """
+    Returns the duration between two ISO 8601 datetime strings as a formatted string (e.g., '1h 23m 45s').
+
+    :param start_time_str: ISO format start time (e.g., '2025-05-20T15:30:00.123456')
+    :param end_time_str: ISO format end time
+    :return: Duration string in the format 'Xh Ym Zs'
+    """
+    start_time = datetime.fromisoformat(start_time_str)
+    end_time = datetime.fromisoformat(end_time_str)
+    duration = end_time - start_time
+
+    hours, remainder = divmod(duration.total_seconds(), 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    return f"{int(hours)}h {int(minutes)}m {int(seconds)}s"

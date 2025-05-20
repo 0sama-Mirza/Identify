@@ -16,6 +16,7 @@ if [ ! -d "$ENV_DIR" ]; then
     echo "2) python -m venv ~/Python-Environments/flaskenv"
     echo "3) Run this script again."
     echo "4) pip install -r requirements.txt"
+    echo "5) gunicorn -w 4 -b 0.0.0.0:5000 run:app"
     return 1
 fi
 

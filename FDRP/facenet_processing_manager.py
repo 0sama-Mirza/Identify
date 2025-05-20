@@ -2,7 +2,8 @@ import sys
 import time
 import subprocess
 sys.path.append("FDRP-Workers")
-from healpers.db_helper import get_cropped_event, update_event_status
+from datetime import datetime
+from healpers.db_helper import get_cropped_event, update_event_status, update_facenet_time, get_duration_string
 
 print("FaceNet Working......")
 print("Looking For cropped events")
@@ -31,9 +32,11 @@ def main_processing_loop(db_path='database.db', check_interval=5):
             print(f"Processing event_id: {event_id}")
             input_folder = f"Cropped_Events/event_{event_id}/Cropped_Faces_Align"
             output_folder = f"Cropped_Events/event_{event_id}"
-
+            start_time = datetime.now().isoformat()
             run_embedding_subprocess(input_folder, output_folder)
-
+            end_time = datetime.now().isoformat()
+            duration_str = get_duration_string(start_time, end_time)
+            update_facenet_time(event_id,duration_str)
             update_event_status(event_id, "emb_ext")
             print("FaceNet Working......")
             print("Looking For cropped events")

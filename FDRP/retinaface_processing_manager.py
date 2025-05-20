@@ -2,8 +2,8 @@ import sys
 import time
 import subprocess
 sys.path.append("FDRP-Workers")
-
-from healpers.db_helper import get_unsorted_event, update_event_status
+from datetime import datetime
+from healpers.db_helper import get_unsorted_event, update_event_status, update_retinaface_time, get_duration_string
 
 print("RetinaFace Working......")
 print("Looking For unsorted events")
@@ -37,9 +37,13 @@ def main_processing_loop(db_path='database.db', check_interval=5):
             output_folder = f"Cropped_Events/event_{event_id}"
 
             # Run extraction in separate subprocess to fully free GPU memory after
+            start_time = datetime.now().isoformat()
             run_face_extraction_subprocess(input_folder, output_folder)
 
             update_event_status(event_id, "cropped")
+            end_time = datetime.now().isoformat()
+            duration_str = get_duration_string(start_time, end_time)
+            update_retinaface_time(event_id,duration_str)
             print("RetinaFace Working......")
             print("Looking For unsorted events")
 

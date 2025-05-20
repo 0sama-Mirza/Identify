@@ -1,9 +1,10 @@
 import time
 import requests
-from healpers.db_helper import get_embeding_extracted_event, update_event_status, delete_sorted_event
+from healpers.db_helper import get_embeding_extracted_event, update_event_status, delete_sorted_event, get_duration_string, update_hdbscan_time
 from Sorting_Algos.HDBSCAN import cluster_faces_hdbscan
 from healpers.folder_healper import delete_folders_in_event_folder
 import os
+from datetime import datetime
 print("HDBSCAN Working......")
 print("Looking For emb_ext events")
 def main_processing_loop(db_path='database.db', check_interval=5):
@@ -14,6 +15,8 @@ def main_processing_loop(db_path='database.db', check_interval=5):
             event_id = event_id_result[0][0]
             print(f"Processing event_id: {event_id}")
             input_folder = f"Cropped_Events/event_{event_id}"
+
+            start_time = datetime.now().isoformat()
             clustered_data = cluster_faces_hdbscan(input_folder)  # Assuming this returns the clustered data
             if clustered_data:
                 print("Clustered Data:", clustered_data)
@@ -27,7 +30,6 @@ def main_processing_loop(db_path='database.db', check_interval=5):
                         no_face_files = [line.strip() for line in f if line.strip()]
                     processed_data["No Face"] = no_face_files
                 print("\n=================processed_data=================\n",processed_data)
-
                 # Include the event_id in the payload
                 payload = {
                     'event_id': event_id,
@@ -37,14 +39,17 @@ def main_processing_loop(db_path='database.db', check_interval=5):
                 try:
                     headers = {'Content-Type': 'application/json'}
                     # For Disturbutive Computing
-                    response = requests.post("http://192.168.100.9:5000/albums/process_album_data", headers=headers, json=payload)
+                    # response = requests.post("http://192.168.100.9:5000/albums/process_album_data", headers=headers, json=payload)
                     # For The Same Machine
-                    # response = requests.post("http://127.0.0.1:5000/albums/process_album_data", headers=headers, json=payload)
+                    response = requests.post("http://127.0.0.1:5000/albums/process_album_data", headers=headers, json=payload)
                     response.raise_for_status()
                     print("Data sent to Flask endpoint successfully.")
                     print("Response:", response.json())
                     update_event_status(event_id, "sorted")
-                    delete_sorted_event(event_id)
+                    end_time = datetime.now().isoformat()
+                    duration_str = get_duration_string(start_time, end_time)
+                    update_hdbscan_time(event_id,duration_str)
+                    # delete_sorted_event(event_id)
                     delete_folders_in_event_folder(event_id)
                 except requests.exceptions.RequestException as e:
                     print(f"Error sending data to Flask endpoint: {e}")
