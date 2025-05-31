@@ -1,0 +1,3 @@
+[submodule "FDRP/FDRP-Workers/Pytorch_Retinaface"]
+	path = FDRP/FDRP-Workers/Pytorch_Retinaface
+	url = https://github.com/0sama-Mirza/Pytorch_Retinaface.git
