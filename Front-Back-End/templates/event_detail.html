@@ -64,8 +64,9 @@
       </a>
     {% else %}
       <!-- No album yet, show face match form -->
+       <!-- action="http://localhost:8000/match-face/"  -->
       <form id="match-face-form"
-            action="http://localhost:8000/match-face/"
+            action="" 
             method="POST"
             enctype="multipart/form-data">
         <input type="hidden" name="user_id" value="{{ user_id }}">
@@ -411,11 +412,26 @@
     loadingDiv.style.display = "block";
     contentDiv.style.display = "none";
 
+    // Define fallback URLs
+    const cloudURL = "";
+    const localURL = "http://localhost:8000/match-face/";
+    let response;
     try {
-      const response = await fetch("http://localhost:8000/match-face/", {
-        method: "POST",
-        body: formData,
-      });
+      try {
+        // Try Cloudflare URL first
+        response = await fetch(cloudURL, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error("Cloud URL failed");
+      } catch {
+        // Fallback to localhost if cloud fails
+        response = await fetch(localURL, {
+          method: "POST",
+          body: formData,
+        });
+      }
 
       const data = await response.json();
 
